@@ -1,24 +1,20 @@
 plugins {
-    id 'fabric-loom' version '1.5-SNAPSHOT'
+    id "fabric-loom" version "1.8-SNAPSHOT"
 }
 
-sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
-
-archivesBaseName = project.archives_base_name
-version = project.mod_version
-group = project.maven_group
-
-loom {
-    accessWidenerPath = file("src/main/resources/blackout.accesswidener")
+base {
+    archivesBaseName = project.archives_base_name
+    version = project.mod_version
+    group = project.maven_group
 }
 
 repositories {
     maven {
-        name = "meteor-maven"
+        name = "Meteor Dev Releases"
         url = "https://maven.meteordev.org/releases"
     }
     maven {
-        name = "meteor-maven-snapshots"
+        name = "Meteor Dev Snapshots"
         url = "https://maven.meteordev.org/snapshots"
     }
 }
@@ -31,17 +27,34 @@ dependencies {
 
     // Meteor
     modImplementation "meteordevelopment:meteor-client:${project.meteor_version}"
-    modImplementation "meteordevelopment:baritone:${project.minecraft_version}-SNAPSHOT"
+    modImplementation "meteordevelopment:baritone:${project.baritone_version}"
 }
 
-processResources {
-    inputs.property "version", project.version
+tasks {
+    processResources {
+        def propertyMap = [
+            "version"   : project.version,
+            "mc_version": project.minecraft_version,
+        ]
 
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version, "mc_version": project.minecraft_version
+        filesMatching("fabric.mod.json") {
+            expand(propertyMap)
+        }
     }
-}
 
-tasks.withType(JavaCompile).configureEach {
-    it.options.encoding("UTF-8")
+    jar {
+        from("LICENSE") {
+            rename { "${it}_${project.base.archivesBaseName}" }
+        }
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = "UTF-8"
+        it.options.release = 21
+    }
 }

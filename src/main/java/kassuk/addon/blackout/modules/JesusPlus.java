@@ -19,29 +19,27 @@ public class JesusPlus extends BlackOutModule {
     public JesusPlus() {
         super(BlackOut.BLACKOUT, "Jesus+", "Better jesus");
     }
+
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final Setting<Double> bob = sgGeneral.add(new DoubleSetting.Builder()
-        .name("Bob force")
-        .description("Use 0.005 or 0.1")
-        .defaultValue(0.005)
-        .min(0)
-        .sliderMax(1)
-        .build()
-    );
-    private final  Setting<Boolean> toggle = sgGeneral.add(new BoolSetting.Builder()
-        .name("Change speed")
-        .description("")
-        .build()
-    );
+            .name("Bob force")
+            .description("Use 0.005 or 0.1")
+            .defaultValue(0.005)
+            .min(0)
+            .sliderMax(1)
+            .build());
+    private final Setting<Boolean> toggle = sgGeneral.add(new BoolSetting.Builder()
+            .name("Change speed")
+            .description("")
+            .build());
     private final Setting<Double> water_speed = sgGeneral.add(new DoubleSetting.Builder()
-        .name("Water speed")
-        .description("0.265 is generally better")
-        .defaultValue(1.175)
-        .min(0)
-        .sliderMax(2)
-        .build()
-    );
+            .name("Water speed")
+            .description("0.265 is generally better")
+            .defaultValue(1.175)
+            .min(0)
+            .sliderMax(2)
+            .build());
 
     private boolean move = false;
     private boolean inWater = false;
@@ -50,16 +48,18 @@ public class JesusPlus extends BlackOutModule {
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         if (mc.player != null && mc.world != null) {
-            if (mc.world.getBlockState(mc.player.getBlockPos().down()).getBlock() == Blocks.WATER || mc.world.getBlockState(mc.player.getBlockPos()).getBlock() == Blocks.WATER) {
+            if (mc.world.getBlockState(mc.player.getBlockPos().down()).getBlock() == Blocks.WATER
+                    || mc.world.getBlockState(mc.player.getBlockPos()).getBlock() == Blocks.WATER) {
                 if (!inWater) {
                     isSlowed = false;
                 }
                 inWater = true;
-            }
-            else inWater = false;
+            } else
+                inWater = false;
 
-            if ((mc.player.isTouchingWater() && !mc.player.isSubmergedInWater()) || (mc.player.isInLava() && !mc.player.isSubmergedIn(FluidTags.LAVA))) {
-                ((IVec3d) mc.player.getVelocity()).setY(bob.get());
+            if ((mc.player.isTouchingWater() && !mc.player.isSubmergedInWater())
+                    || (mc.player.isInLava() && !mc.player.isSubmergedIn(FluidTags.LAVA))) {
+                ((IVec3d) mc.player.getVelocity()).meteor$setY(bob.get());
 
                 if (toggle.get() && !(mc.player.isInLava() && !mc.player.isSubmergedIn(FluidTags.LAVA)) && !isSlowed) {
                     double motion = water_speed.get();
@@ -76,19 +76,21 @@ public class JesusPlus extends BlackOutModule {
                     double x = Math.cos(Math.toRadians(yaw + 90.0f));
                     double z = Math.sin(Math.toRadians(yaw + 90.0f));
                     if (move) {
-                        ((IVec3d) event.movement).setXZ(motion * x, motion * z);
+                        ((IVec3d) event.movement).meteor$setXZ(motion * x, motion * z);
                     } else {
-                        ((IVec3d) event.movement).setXZ(0, 0);
+                        ((IVec3d) event.movement).meteor$setXZ(0, 0);
                     }
                 }
             }
         }
     }
+
     @EventHandler
     private void OnRecieve(PacketEvent.Receive event) {
         if (event.packet instanceof PlayerPositionLookS2CPacket)
             isSlowed = true;
     }
+
     public void onActivate() {
         inWater = false;
     }

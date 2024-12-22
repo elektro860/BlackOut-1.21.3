@@ -3,6 +3,7 @@ package kassuk.addon.blackout;
 import kassuk.addon.blackout.enums.SwingHand;
 import kassuk.addon.blackout.enums.SwingState;
 import kassuk.addon.blackout.enums.SwingType;
+import kassuk.addon.blackout.mixins.IClientWorld;
 import kassuk.addon.blackout.modules.SwingModifier;
 import kassuk.addon.blackout.utils.PriorityUtils;
 import kassuk.addon.blackout.utils.SettingUtils;
@@ -43,11 +44,12 @@ public class BlackOutModule extends Module {
         this.priority = PriorityUtils.get(this);
     }
 
-    //  Messages
+    // Messages
     public void sendToggledMsg() {
         if (Config.get().chatFeedback.get() && chatFeedback && mc.world != null) {
             ChatUtils.forceNextPrefixClass(getClass());
-            String msg = prefix + " " + Formatting.WHITE + name + (isActive() ? Formatting.GREEN + " ON" : Formatting.RED + " OFF");
+            String msg = prefix + " " + Formatting.WHITE + name
+                    + (isActive() ? Formatting.GREEN + " ON" : Formatting.RED + " OFF");
             sendMessage(Text.of(msg), hashCode());
         }
     }
@@ -55,7 +57,8 @@ public class BlackOutModule extends Module {
     public void sendToggledMsg(String message) {
         if (Config.get().chatFeedback.get() && chatFeedback && mc.world != null) {
             ChatUtils.forceNextPrefixClass(getClass());
-            String msg = prefix + " " + Formatting.WHITE + name + (isActive() ? Formatting.GREEN + " ON " : Formatting.RED + " OFF ") + Formatting.GRAY + message;
+            String msg = prefix + " " + Formatting.WHITE + name
+                    + (isActive() ? Formatting.GREEN + " ON " : Formatting.RED + " OFF ") + Formatting.GRAY + message;
             sendMessage(Text.of(msg), hashCode());
         }
     }
@@ -75,6 +78,7 @@ public class BlackOutModule extends Module {
             sendMessage(Text.of(msg), Objects.hash(name + "-info"));
         }
     }
+
     public void debug(String text) {
         if (mc.world != null) {
             ChatUtils.forceNextPrefixClass(getClass());
@@ -88,14 +92,16 @@ public class BlackOutModule extends Module {
     }
 
     public void sendPacket(Packet<?> packet) {
-        if (mc.getNetworkHandler() == null) return;
+        if (mc.getNetworkHandler() == null)
+            return;
         mc.getNetworkHandler().sendPacket(packet);
     }
 
     public void sendSequenced(SequencedPacketCreator packetCreator) {
-        if (mc.interactionManager == null || mc.world == null || mc.getNetworkHandler() == null) return;
+        if (mc.interactionManager == null || mc.world == null || mc.getNetworkHandler() == null)
+            return;
 
-        PendingUpdateManager sequence = mc.world.getPendingUpdateManager().incrementSequence();
+        PendingUpdateManager sequence = ((IClientWorld) mc.world).getPendingUpdateManager().incrementSequence();
         Packet<?> packet = packetCreator.predict(sequence.getSequence());
 
         mc.getNetworkHandler().sendPacket(packet);
@@ -105,31 +111,31 @@ public class BlackOutModule extends Module {
 
     public void placeBlock(Hand hand, Vec3d blockHitVec, Direction blockDirection, BlockPos pos) {
         Vec3d eyes = mc.player.getEyePos();
-        boolean inside =
-            eyes.x > pos.getX() && eyes.x < pos.getX() + 1 &&
+        boolean inside = eyes.x > pos.getX() && eyes.x < pos.getX() + 1 &&
                 eyes.y > pos.getY() && eyes.y < pos.getY() + 1 &&
                 eyes.z > pos.getZ() && eyes.z < pos.getZ() + 1;
 
         SettingUtils.swing(SwingState.Pre, SwingType.Placing, hand);
-        sendSequenced(s -> new PlayerInteractBlockC2SPacket(hand, new BlockHitResult(blockHitVec, blockDirection, pos, inside), s));
+        sendSequenced(s -> new PlayerInteractBlockC2SPacket(hand,
+                new BlockHitResult(blockHitVec, blockDirection, pos, inside), s));
         SettingUtils.swing(SwingState.Post, SwingType.Placing, hand);
     }
 
     public void interactBlock(Hand hand, Vec3d blockHitVec, Direction blockDirection, BlockPos pos) {
         Vec3d eyes = mc.player.getEyePos();
-        boolean inside =
-            eyes.x > pos.getX() && eyes.x < pos.getX() + 1 &&
-            eyes.y > pos.getY() && eyes.y < pos.getY() + 1 &&
-            eyes.z > pos.getZ() && eyes.z < pos.getZ() + 1;
+        boolean inside = eyes.x > pos.getX() && eyes.x < pos.getX() + 1 &&
+                eyes.y > pos.getY() && eyes.y < pos.getY() + 1 &&
+                eyes.z > pos.getZ() && eyes.z < pos.getZ() + 1;
 
         SettingUtils.swing(SwingState.Pre, SwingType.Interact, hand);
-        sendSequenced(s -> new PlayerInteractBlockC2SPacket(hand, new BlockHitResult(blockHitVec, blockDirection, pos, inside), s));
+        sendSequenced(s -> new PlayerInteractBlockC2SPacket(hand,
+                new BlockHitResult(blockHitVec, blockDirection, pos, inside), s));
         SettingUtils.swing(SwingState.Post, SwingType.Interact, hand);
     }
 
     public void useItem(Hand hand) {
         SettingUtils.swing(SwingState.Pre, SwingType.Using, hand);
-        sendSequenced(s -> new PlayerInteractItemC2SPacket(hand, s));
+        sendSequenced(s -> new PlayerInteractItemC2SPacket(hand, s, mc.player.getYaw(), mc.player.getPitch()));
         SettingUtils.swing(SwingState.Post, SwingType.Using, hand);
     }
 
@@ -146,10 +152,9 @@ public class BlackOutModule extends Module {
 
     public Setting<Boolean> addPauseEat(SettingGroup group) {
         return group.add(new BoolSetting.Builder()
-            .name("Pause Eat")
-            .description("Pauses when eating")
-            .defaultValue(false)
-            .build()
-        );
+                .name("Pause Eat")
+                .description("Pauses when eating")
+                .defaultValue(false)
+                .build());
     }
 }

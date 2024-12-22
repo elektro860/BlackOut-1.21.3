@@ -37,52 +37,45 @@ public class AutoPearl extends BlackOutModule {
     private final SettingGroup sgRender = settings.createGroup("Render");
 
     private final Setting<Boolean> ccBypass = sgGeneral.add(new BoolSetting.Builder()
-        .name("CC Bypass")
-        .description("Does funny stuff to bypass cc's anti delay.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("CC Bypass")
+            .description("Does funny stuff to bypass cc's anti delay.")
+            .defaultValue(false)
+            .build());
     private final Setting<SwitchMode> ccSwitchMode = sgGeneral.add(new EnumSetting.Builder<SwitchMode>()
-        .name("CC Switch Mode")
-        .description("Which method of switching should be used for cc items.")
-        .defaultValue(SwitchMode.Silent)
-        .build()
-    );
+            .name("CC Switch Mode")
+            .description("Which method of switching should be used for cc items.")
+            .defaultValue(SwitchMode.Silent)
+            .build());
     private final Setting<SwitchMode> switchMode = sgGeneral.add(new EnumSetting.Builder<SwitchMode>()
-        .name("Switch Mode")
-        .description("Which method of switching should be used.")
-        .defaultValue(SwitchMode.Silent)
-        .build()
-    );
+            .name("Switch Mode")
+            .description("Which method of switching should be used.")
+            .defaultValue(SwitchMode.Silent)
+            .build());
     private final Setting<Integer> pitch = sgGeneral.add(new IntSetting.Builder()
-        .name("Pitch")
-        .description("How deep down to look.")
-        .defaultValue(85)
-        .range(-90, 90)
-        .sliderRange(0, 90)
-        .build()
-    );
+            .name("Pitch")
+            .description("How deep down to look.")
+            .defaultValue(85)
+            .range(-90, 90)
+            .sliderRange(0, 90)
+            .build());
     private final Setting<Boolean> instaRot = sgGeneral.add(new BoolSetting.Builder()
-        .name("Instant Rotation")
-        .description("Instantly rotates.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Instant Rotation")
+            .description("Instantly rotates.")
+            .defaultValue(false)
+            .build());
 
-    //--------------------Render--------------------//
+    // --------------------Render--------------------//
     private final Setting<Boolean> swing = sgRender.add(new BoolSetting.Builder()
-        .name("Swing")
-        .description("Renders swing animation when throwing an ender pearl.")
-        .defaultValue(true)
-        .build()
-    );
+            .name("Swing")
+            .description("Renders swing animation when throwing an ender pearl.")
+            .defaultValue(true)
+            .build());
     private final Setting<SwingHand> swingHand = sgRender.add(new EnumSetting.Builder<SwingHand>()
-        .name("Swing Hand")
-        .description("Which hand should be swung.")
-        .defaultValue(SwingHand.RealHand)
-        .visible(swing::get)
-        .build()
-    );
+            .name("Swing Hand")
+            .description("Which hand should be swung.")
+            .defaultValue(SwingHand.RealHand)
+            .visible(swing::get)
+            .build());
 
     private boolean placed = false;
 
@@ -92,23 +85,31 @@ public class AutoPearl extends BlackOutModule {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onRender(Render3DEvent event) {
-        if (mc.player == null || mc.world == null) return;
+        if (mc.player == null || mc.world == null)
+            return;
 
         Hand hand = getHand();
 
         if (switch (switchMode.get()) {
             case Normal, Silent -> !InvUtils.findInHotbar(Items.ENDER_PEARL).found();
             case PickSilent, InvSwitch -> !InvUtils.find(Items.ENDER_PEARL).found();
-        }) return;
+        })
+            return;
 
-        if (ccBypass.get() && !cc() && !placed) return;
+        if (ccBypass.get() && !cc() && !placed)
+            return;
 
-        boolean rotated = instaRot.get() || Managers.ROTATION.start(getYaw(), pitch.get(), priority, RotationType.Other, Objects.hash(name + "look")) || (RotationUtils.yawAngle(Managers.ROTATION.lastDir[0], getYaw()) < 0.1 && pitch.get() - Managers.ROTATION.lastDir[1] < 0.1);
-        if (!rotated) return;
-
+        boolean rotated = instaRot.get()
+                || Managers.ROTATION.start(getYaw(), pitch.get(), priority, RotationType.Other,
+                        Objects.hash(name + "look"))
+                || (RotationUtils.yawAngle(Managers.ROTATION.lastDir[0], getYaw()) < 0.1
+                        && pitch.get() - Managers.ROTATION.lastDir[1] < 0.1);
+        if (!rotated)
+            return;
 
         if (instaRot.get()) {
-            sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(getYaw(), pitch.get(), Managers.ON_GROUND.isOnGround()));
+            sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(getYaw(), pitch.get(), Managers.ON_GROUND.isOnGround(),
+                    mc.player.horizontalCollision));
         }
 
         boolean switched = hand != null;
@@ -131,7 +132,8 @@ public class AutoPearl extends BlackOutModule {
         useItem(hand == null ? Hand.MAIN_HAND : hand);
 
         Managers.ROTATION.end(Objects.hash(name + "look"));
-        if (swing.get()) clientSwing(swingHand.get(), hand == null ? Hand.MAIN_HAND : hand);
+        if (swing.get())
+            clientSwing(swingHand.get(), hand == null ? Hand.MAIN_HAND : hand);
 
         toggle();
         sendToggledMsg("success");
@@ -157,14 +159,19 @@ public class AutoPearl extends BlackOutModule {
 
         BlockPos pos = mc.player.getBlockPos();
 
-        boolean rotated = instaRot.get() || !SettingUtils.shouldRotate(RotationType.BlockPlace) || Managers.ROTATION.start(pos.down(), priority, RotationType.BlockPlace, Objects.hash(name + "placing"));
-        if (!rotated) return false;
+        boolean rotated = instaRot.get() || !SettingUtils.shouldRotate(RotationType.BlockPlace) || Managers.ROTATION
+                .start(pos.down(), priority, RotationType.BlockPlace, Objects.hash(name + "placing"));
+        if (!rotated)
+            return false;
 
         if (instaRot.get())
-            sendPacket(new PlayerMoveC2SPacket.LookAndOnGround((float) RotationUtils.getYaw(mc.player.getEyePos(), pos.toCenterPos()), (float) RotationUtils.getPitch(mc.player.getEyePos(), pos.toCenterPos()), Managers.ON_GROUND.isOnGround()));
+            sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(
+                    (float) RotationUtils.getYaw(mc.player.getEyePos(), pos.toCenterPos()),
+                    (float) RotationUtils.getPitch(mc.player.getEyePos(), pos.toCenterPos()),
+                    Managers.ON_GROUND.isOnGround(), mc.player.horizontalCollision));
 
-        Hand hand = mc.player.getOffHandStack().getItem() instanceof BlockItem ? Hand.OFF_HAND :
-            Managers.HOLDING.getStack().getItem() instanceof BlockItem ? Hand.MAIN_HAND : null;
+        Hand hand = mc.player.getOffHandStack().getItem() instanceof BlockItem ? Hand.OFF_HAND
+                : Managers.HOLDING.getStack().getItem() instanceof BlockItem ? Hand.MAIN_HAND : null;
 
         boolean switched = false;
 
@@ -181,11 +188,13 @@ public class AutoPearl extends BlackOutModule {
             }
         }
 
-        if (hand == null && !switched) return false;
+        if (hand == null && !switched)
+            return false;
 
         placeBlock(hand == null ? Hand.MAIN_HAND : hand, pos.down().toCenterPos(), Direction.UP, pos.down());
 
-        if (!instaRot.get() && SettingUtils.shouldRotate(RotationType.BlockPlace)) Managers.ROTATION.end(Objects.hash(name + "placing"));
+        if (!instaRot.get() && SettingUtils.shouldRotate(RotationType.BlockPlace))
+            Managers.ROTATION.end(Objects.hash(name + "placing"));
         placed = true;
 
         if (hand == null) {
@@ -200,7 +209,9 @@ public class AutoPearl extends BlackOutModule {
     }
 
     private int getYaw() {
-        return (int) Math.round(Rotations.getYaw(new Vec3d(Math.floor(mc.player.getX()) + 0.5, 0, Math.floor(mc.player.getZ()) + 0.5))) + 180;
+        return (int) Math.round(
+                Rotations.getYaw(new Vec3d(Math.floor(mc.player.getX()) + 0.5, 0, Math.floor(mc.player.getZ()) + 0.5)))
+                + 180;
     }
 
     private Hand getHand() {

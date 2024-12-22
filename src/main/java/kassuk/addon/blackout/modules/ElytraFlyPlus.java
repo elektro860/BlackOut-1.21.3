@@ -20,74 +20,66 @@ public class ElytraFlyPlus extends BlackOutModule {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgSpeed = settings.createGroup("Speed");
 
-    //--------------------General--------------------//
+    // --------------------General--------------------//
     private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
-        .name("Mode")
-        .description(".")
-        .defaultValue(Mode.Wasp)
-        .build()
-    );
+            .name("Mode")
+            .description(".")
+            .defaultValue(Mode.Wasp)
+            .build());
 
-    //--------------------Speed--------------------//
+    // --------------------Speed--------------------//
     private final Setting<Double> horizontal = sgSpeed.add(new DoubleSetting.Builder()
-        .name("Horizontal Speed")
-        .description("How many blocks to move each tick horizontally.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 5)
-        .visible(() -> mode.get() == Mode.Wasp)
-        .build()
-    );
+            .name("Horizontal Speed")
+            .description("How many blocks to move each tick horizontally.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 5)
+            .visible(() -> mode.get() == Mode.Wasp)
+            .build());
     private final Setting<Double> up = sgSpeed.add(new DoubleSetting.Builder()
-        .name("Up Speed")
-        .description("How many blocks to move up each tick.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 5)
-        .visible(() -> mode.get() == Mode.Wasp)
-        .build()
-    );
+            .name("Up Speed")
+            .description("How many blocks to move up each tick.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 5)
+            .visible(() -> mode.get() == Mode.Wasp)
+            .build());
     private final Setting<Double> speed = sgSpeed.add(new DoubleSetting.Builder()
-        .name("Speed")
-        .description("How many blocks to move each tick.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 5)
-        .visible(() -> mode.get() == Mode.Control)
-        .build()
-    );
+            .name("Speed")
+            .description("How many blocks to move each tick.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 5)
+            .visible(() -> mode.get() == Mode.Control)
+            .build());
     private final Setting<Double> upMultiplier = sgSpeed.add(new DoubleSetting.Builder()
-        .name("Up Multiplier")
-        .description("How many times faster should we fly up.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 5)
-        .visible(() -> mode.get() == Mode.Control)
-        .build()
-    );
+            .name("Up Multiplier")
+            .description("How many times faster should we fly up.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 5)
+            .visible(() -> mode.get() == Mode.Control)
+            .build());
     private final Setting<Double> down = sgSpeed.add(new DoubleSetting.Builder()
-        .name("Down Speed")
-        .description("How many blocks to move down each tick.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 5)
-        .build()
-    );
+            .name("Down Speed")
+            .description("How many blocks to move down each tick.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 5)
+            .build());
     private final Setting<Boolean> smartFall = sgSpeed.add(new BoolSetting.Builder()
-        .name("Smart Fall")
-        .description("Only falls down when looking down.")
-        .defaultValue(true)
-        .visible(() -> mode.get() == Mode.Wasp)
-        .build()
-    );
+            .name("Smart Fall")
+            .description("Only falls down when looking down.")
+            .defaultValue(true)
+            .visible(() -> mode.get() == Mode.Wasp)
+            .build());
     private final Setting<Double> fallSpeed = sgSpeed.add(new DoubleSetting.Builder()
-        .name("Fall Speed")
-        .description("How many blocks to fall down each tick.")
-        .defaultValue(0.01)
-        .min(0)
-        .sliderRange(0, 1)
-        .build()
-    );
+            .name("Fall Speed")
+            .description("How many blocks to fall down each tick.")
+            .defaultValue(0.01)
+            .min(0)
+            .sliderRange(0, 1)
+            .build());
 
     private boolean moving;
     private float yaw;
@@ -105,7 +97,9 @@ public class ElytraFlyPlus extends BlackOutModule {
 
     // Wasp
     private void waspTick(PlayerMoveEvent event) {
-        if (!mc.player.isFallFlying()) {return;}
+        if (!mc.player.isGliding()) {
+            return;
+        }
 
         updateWaspMovement();
         pitch = mc.player.getPitch();
@@ -128,7 +122,7 @@ public class ElytraFlyPlus extends BlackOutModule {
             y = up.get();
         }
 
-        ((IVec3d) event.movement).set(x, y, z);
+        ((IVec3d) event.movement).meteor$set(x, y, z);
         mc.player.setVelocity(0, 0, 0);
     }
 
@@ -153,7 +147,9 @@ public class ElytraFlyPlus extends BlackOutModule {
 
     // Pitch
     private void controlTick(PlayerMoveEvent event) {
-        if (!mc.player.isFallFlying()) {return;}
+        if (!mc.player.isGliding()) {
+            return;
+        }
 
         updateControlMovement();
         pitch = 0;
@@ -177,9 +173,12 @@ public class ElytraFlyPlus extends BlackOutModule {
         double cos = Math.cos(Math.toRadians(yaw + 90));
         double sin = Math.sin(Math.toRadians(yaw + 90));
 
-        double x = moving && !movingUp ? cos * speed.get() : movingUp ? velocity * Math.cos(Math.toRadians(pitch)) * cos : 0;
-        double y = pitch < 0 ? velocity * upMultiplier.get() * -Math.sin(Math.toRadians(pitch)) * velocity : -fallSpeed.get();
-        double z = moving && !movingUp ? sin * speed.get() : movingUp ? velocity * Math.cos(Math.toRadians(pitch)) * sin : 0;
+        double x = moving && !movingUp ? cos * speed.get()
+                : movingUp ? velocity * Math.cos(Math.toRadians(pitch)) * cos : 0;
+        double y = pitch < 0 ? velocity * upMultiplier.get() * -Math.sin(Math.toRadians(pitch)) * velocity
+                : -fallSpeed.get();
+        double z = moving && !movingUp ? sin * speed.get()
+                : movingUp ? velocity * Math.cos(Math.toRadians(pitch)) * sin : 0;
 
         y *= Math.abs(Math.sin(Math.toRadians(movingUp ? pitch : mc.player.getPitch())));
 
@@ -187,7 +186,7 @@ public class ElytraFlyPlus extends BlackOutModule {
             y = -down.get();
         }
 
-        ((IVec3d) event.movement).set(x, y, z);
+        ((IVec3d) event.movement).meteor$set(x, y, z);
         mc.player.setVelocity(0, 0, 0);
     }
 

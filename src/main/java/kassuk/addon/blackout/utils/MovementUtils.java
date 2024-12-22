@@ -11,9 +11,11 @@ public class MovementUtils {
     public static double xMovement(double speed, double yaw) {
         return Math.cos(Math.toRadians(yaw + 90)) * speed;
     }
+
     public static double zMovement(double speed, double yaw) {
         return Math.sin(Math.toRadians(yaw + 90)) * speed;
     }
+
     public static double getSpeed(double baseSpeed) {
         if (mc.player.hasStatusEffect(StatusEffects.SPEED)) {
             baseSpeed *= 1.2 + mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier() * 0.2;
@@ -26,6 +28,7 @@ public class MovementUtils {
         }
         return baseSpeed;
     }
+
     public static void moveTowards(Vec3d movement, double baseSpeed, Vec3d vec, int step, int reverseStep) {
         double speed = getSpeed(baseSpeed);
 
@@ -42,32 +45,30 @@ public class MovementUtils {
 
         y(movement, x, z, step, reverseStep);
 
-        ((IVec3d) movement).setXZ(x, z);
+        ((IVec3d) movement).meteor$setXZ(x, z);
     }
 
     private static void y(Vec3d movement, double x, double z, int step, int rev) {
         // Step
-        if (mc.player.isOnGround() &&
-            !OLEPOSSUtils.inside(mc.player, mc.player.getBoundingBox()) &&
-            OLEPOSSUtils.inside(mc.player, mc.player.getBoundingBox().offset(x, 0, z))) {
+        if (mc.player.isOnGround() && !OLEPOSSUtils.inside(mc.player, mc.player.getBoundingBox())
+                && OLEPOSSUtils.inside(mc.player, mc.player.getBoundingBox().offset(x, 0, z))) {
 
             double s = getStep(mc.player.getBoundingBox().offset(x, 0, z), step);
 
             if (s > 0) {
-                ((IVec3d) movement).setY(s);
+                ((IVec3d) movement).meteor$setY(s);
                 mc.player.setVelocity(mc.player.getVelocity().x, 0, mc.player.getVelocity().z);
             }
             return;
         }
 
         // Reverse
-        if (mc.player.isOnGround() &&
-            !OLEPOSSUtils.inside(mc.player, mc.player.getBoundingBox().offset(x, -0.04, z))) {
+        if (mc.player.isOnGround() && !OLEPOSSUtils.inside(mc.player, mc.player.getBoundingBox().offset(x, -0.04, z))) {
 
             double s = getReverse(mc.player.getBoundingBox(), rev);
 
             if (s > 0) {
-                ((IVec3d) movement).setY(-s);
+                ((IVec3d) movement).meteor$setY(-s);
                 mc.player.setVelocity(mc.player.getVelocity().x, 0, mc.player.getVelocity().z);
             }
         }
@@ -81,6 +82,7 @@ public class MovementUtils {
         }
         return 0;
     }
+
     private static double getReverse(Box box, int reverse) {
         for (double i = 0; i <= reverse; i += 0.125) {
             if (OLEPOSSUtils.inside(mc.player, box.offset(0, -i - 0.125, 0))) {

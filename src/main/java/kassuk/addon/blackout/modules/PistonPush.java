@@ -50,130 +50,59 @@ public class PistonPush extends BlackOutModule {
     private final SettingGroup sgSwing = settings.createGroup("Swing");
     private final SettingGroup sgRender = settings.createGroup("Render");
 
-    //--------------------General--------------------//
+    // --------------------General--------------------//
     private final Setting<Boolean> pauseEat = addPauseEat(sgGeneral);
-    private final Setting<Redstone> redstone = sgGeneral.add(new EnumSetting.Builder<Redstone>()
-        .name("Redstone")
-        .description("What kind of redstone to use.")
-        .defaultValue(Redstone.Torch)
-        .build()
-    );
-    private final Setting<Boolean> onlyHole = sgSwing.add(new BoolSetting.Builder()
-        .name("Only Hole")
-        .description("Toggles when enemy moves.")
-        .defaultValue(true)
-        .build()
-    );
-    private final Setting<Boolean> toggleMove = sgSwing.add(new BoolSetting.Builder()
-        .name("Toggle Move")
-        .description("Toggles when enemy moves.")
-        .defaultValue(true)
-        .build()
-    );
+    private final Setting<Redstone> redstone = sgGeneral.add(new EnumSetting.Builder<Redstone>().name("Redstone")
+            .description("What kind of redstone to use.").defaultValue(Redstone.Torch).build());
+    private final Setting<Boolean> onlyHole = sgSwing.add(new BoolSetting.Builder().name("Only Hole")
+            .description("Toggles when enemy moves.").defaultValue(true).build());
+    private final Setting<Boolean> toggleMove = sgSwing.add(new BoolSetting.Builder().name("Toggle Move")
+            .description("Toggles when enemy moves.").defaultValue(true).build());
     private final Setting<SwitchMode> pistonSwitch = sgGeneral.add(new EnumSetting.Builder<SwitchMode>()
-        .name("Piston Switch")
-        .description("Method of switching. Silent is the most reliable.")
-        .defaultValue(SwitchMode.Silent)
-        .build()
-    );
+            .name("Piston Switch").description("Method of switching. Silent is the most reliable.")
+            .defaultValue(SwitchMode.Silent).build());
     private final Setting<SwitchMode> redstoneSwitch = sgGeneral.add(new EnumSetting.Builder<SwitchMode>()
-        .name("Redstone Switch")
-        .description("Method of switching. Silent is the most reliable.")
-        .defaultValue(SwitchMode.Silent)
-        .build()
-    );
+            .name("Redstone Switch").description("Method of switching. Silent is the most reliable.")
+            .defaultValue(SwitchMode.Silent).build());
 
-    //--------------------Delay--------------------//
-    private final Setting<Double> prDelay = sgDelay.add(new DoubleSetting.Builder()
-        .name("Piston > Redstone")
-        .description("How many seconds to wait between placing piston and redstone.")
-        .defaultValue(0)
-        .min(0)
-        .sliderRange(0, 20)
-        .build()
-    );
-    private final Setting<Double> rmDelay = sgDelay.add(new DoubleSetting.Builder()
-        .name("Redstone > Mine")
-        .description("How many seconds to wait between placing redstone and starting to mine it.")
-        .defaultValue(0.2)
-        .min(0)
-        .sliderRange(0, 20)
-        .build()
-    );
-    private final Setting<Double> mpDelay = sgDelay.add(new DoubleSetting.Builder()
-        .name("Mine > Piston")
-        .description("How many seconds to wait after mining the redstone before starting a new cycle.")
-        .defaultValue(0.2)
-        .min(0)
-        .sliderRange(0, 20)
-        .build()
-    );
+    // --------------------Delay--------------------//
+    private final Setting<Double> prDelay = sgDelay.add(new DoubleSetting.Builder().name("Piston > Redstone")
+            .description("How many seconds to wait between placing piston and redstone.").defaultValue(0).min(0)
+            .sliderRange(0, 20).build());
+    private final Setting<Double> rmDelay = sgDelay.add(new DoubleSetting.Builder().name("Redstone > Mine")
+            .description("How many seconds to wait between placing redstone and starting to mine it.").defaultValue(0.2)
+            .min(0).sliderRange(0, 20).build());
+    private final Setting<Double> mpDelay = sgDelay.add(new DoubleSetting.Builder().name("Mine > Piston")
+            .description("How many seconds to wait after mining the redstone before starting a new cycle.")
+            .defaultValue(0.2).min(0).sliderRange(0, 20).build());
 
-    //--------------------Swing--------------------//
-    private final Setting<Boolean> pistonSwing = sgSwing.add(new BoolSetting.Builder()
-        .name("Piston Swing")
-        .description("Renders swing animation when placing a piston.")
-        .defaultValue(true)
-        .build()
-    );
-    private final Setting<SwingHand> pistonHand = sgSwing.add(new EnumSetting.Builder<SwingHand>()
-        .name("Piston Swing Hand")
-        .description("Which hand should be swung.")
-        .defaultValue(SwingHand.RealHand)
-        .visible(pistonSwing::get)
-        .build()
-    );
-    private final Setting<Boolean> redstoneSwing = sgSwing.add(new BoolSetting.Builder()
-        .name("Piston Swing")
-        .description("Renders swing animation when placing redstone.")
-        .defaultValue(true)
-        .build()
-    );
-    private final Setting<SwingHand> redstoneHand = sgSwing.add(new EnumSetting.Builder<SwingHand>()
-        .name("Redstone Swing Hand")
-        .description("Which hand should be swung.")
-        .defaultValue(SwingHand.RealHand)
-        .visible(redstoneSwing::get)
-        .build()
-    );
+    // --------------------Swing--------------------//
+    private final Setting<Boolean> pistonSwing = sgSwing.add(new BoolSetting.Builder().name("Piston Swing")
+            .description("Renders swing animation when placing a piston.").defaultValue(true).build());
+    private final Setting<SwingHand> pistonHand = sgSwing.add(
+            new EnumSetting.Builder<SwingHand>().name("Piston Swing Hand").description("Which hand should be swung.")
+                    .defaultValue(SwingHand.RealHand).visible(pistonSwing::get).build());
+    private final Setting<Boolean> redstoneSwing = sgSwing.add(new BoolSetting.Builder().name("Piston Swing")
+            .description("Renders swing animation when placing redstone.").defaultValue(true).build());
+    private final Setting<SwingHand> redstoneHand = sgSwing.add(
+            new EnumSetting.Builder<SwingHand>().name("Redstone Swing Hand").description("Which hand should be swung.")
+                    .defaultValue(SwingHand.RealHand).visible(redstoneSwing::get).build());
 
-    //--------------------Render--------------------//
-    private final Setting<ShapeMode> pistonShape = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-        .name("Piston Shape Mode")
-        .description("Which parts should be rendered.")
-        .defaultValue(ShapeMode.Both)
-        .build()
-    );
-    private final Setting<SettingColor> psColor = sgRender.add(new ColorSetting.Builder()
-        .name("Piston Side Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 255, 255, 50))
-        .build()
-    );
-    private final Setting<SettingColor> plColor = sgRender.add(new ColorSetting.Builder()
-        .name("Piston Line Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 255, 255, 255))
-        .build()
-    );
-    private final Setting<ShapeMode> redstoneShape = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-        .name("Redstone Shape Mode")
-        .description("Which parts should be rendered.")
-        .defaultValue(ShapeMode.Both)
-        .build()
-    );
-    private final Setting<SettingColor> rsColor = sgRender.add(new ColorSetting.Builder()
-        .name("Redstone Side Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 0, 0, 50))
-        .build()
-    );
-    private final Setting<SettingColor> rlColor = sgRender.add(new ColorSetting.Builder()
-        .name("Redstone Line Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 0, 0, 255))
-        .build()
-    );
+    // --------------------Render--------------------//
+    private final Setting<ShapeMode> pistonShape = sgRender
+            .add(new EnumSetting.Builder<ShapeMode>().name("Piston Shape Mode")
+                    .description("Which parts should be rendered.").defaultValue(ShapeMode.Both).build());
+    private final Setting<SettingColor> psColor = sgRender.add(new ColorSetting.Builder().name("Piston Side Color")
+            .description(BlackOut.COLOR).defaultValue(new SettingColor(255, 255, 255, 50)).build());
+    private final Setting<SettingColor> plColor = sgRender.add(new ColorSetting.Builder().name("Piston Line Color")
+            .description(BlackOut.COLOR).defaultValue(new SettingColor(255, 255, 255, 255)).build());
+    private final Setting<ShapeMode> redstoneShape = sgRender
+            .add(new EnumSetting.Builder<ShapeMode>().name("Redstone Shape Mode")
+                    .description("Which parts should be rendered.").defaultValue(ShapeMode.Both).build());
+    private final Setting<SettingColor> rsColor = sgRender.add(new ColorSetting.Builder().name("Redstone Side Color")
+            .description(BlackOut.COLOR).defaultValue(new SettingColor(255, 0, 0, 50)).build());
+    private final Setting<SettingColor> rlColor = sgRender.add(new ColorSetting.Builder().name("Redstone Line Color")
+            .description(BlackOut.COLOR).defaultValue(new SettingColor(255, 0, 0, 255)).build());
 
     private long pistonTime = 0;
     private long redstoneTime = 0;
@@ -215,7 +144,8 @@ public class PistonPush extends BlackOutModule {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onRender(Render3DEvent event) {
-        if (mc.player == null || mc.world == null) return;
+        if (mc.player == null || mc.world == null)
+            return;
 
         if (startPos != null && toggleMove.get()) {
             if (!startPos.equals(currentPos)) {
@@ -237,7 +167,9 @@ public class PistonPush extends BlackOutModule {
         event.renderer.box(getBox(pistonPos), psColor.get(), plColor.get(), pistonShape.get(), 0);
         event.renderer.box(getBox(redstonePos), rsColor.get(), rlColor.get(), redstoneShape.get(), 0);
 
-        if ((System.currentTimeMillis() - mineTime > mpDelay.get() * 1000 && redstonePlaced && pistonPlaced && mined) || !pistonPos.equals(lastPiston) || !redstonePos.equals(lastRedstone) || !pistonDir.equals(lastDirection)) {
+        if ((System.currentTimeMillis() - mineTime > mpDelay.get() * 1000 && redstonePlaced && pistonPlaced && mined)
+                || !pistonPos.equals(lastPiston) || !redstonePos.equals(lastRedstone)
+                || !pistonDir.equals(lastDirection)) {
             redstonePlaced = false;
             pistonPlaced = false;
             mined = false;
@@ -247,7 +179,8 @@ public class PistonPush extends BlackOutModule {
         lastRedstone = redstonePos;
         lastDirection = pistonDir;
 
-        if (pauseEat.get() && mc.player.isUsingItem()) return;
+        if (pauseEat.get() && mc.player.isUsingItem())
+            return;
 
         placePiston();
         placeRedstone();
@@ -255,15 +188,16 @@ public class PistonPush extends BlackOutModule {
     }
 
     private void placePiston() {
-        if (pistonPlaced) return;
+        if (pistonPlaced)
+            return;
 
         Hand hand = getHand(Items.PISTON);
         boolean available = hand != null;
 
         if (!available) {
             switch (pistonSwitch.get()) {
-                case Silent -> available = InvUtils.findInHotbar(Items.PISTON).found();
-                case PickSilent, InvSwitch -> available = InvUtils.find(Items.PISTON).found();
+            case Silent -> available = InvUtils.findInHotbar(Items.PISTON).found();
+            case PickSilent, InvSwitch -> available = InvUtils.find(Items.PISTON).found();
             }
         }
 
@@ -271,21 +205,27 @@ public class PistonPush extends BlackOutModule {
             return;
         }
 
-        if (!mc.player.isOnGround()) return;
-        if (EntityUtils.intersectsWithEntity(Box.from(new BlockBox(pistonPos)), entity -> !entity.isSpectator() && !(entity instanceof ItemEntity))) return;
-        if (SettingUtils.shouldRotate(RotationType.BlockPlace) && !Managers.ROTATION.start(pistonData.pos(), priority, RotationType.BlockPlace, Objects.hash(name + "piston"))) return;
-        sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(pistonDir.asRotation(), Managers.ROTATION.lastDir[1], Managers.ON_GROUND.isOnGround()));
+        if (!mc.player.isOnGround())
+            return;
+        if (EntityUtils.intersectsWithEntity(Box.from(new BlockBox(pistonPos)),
+                entity -> !entity.isSpectator() && !(entity instanceof ItemEntity)))
+            return;
+        if (SettingUtils.shouldRotate(RotationType.BlockPlace) && !Managers.ROTATION.start(pistonData.pos(), priority,
+                RotationType.BlockPlace, Objects.hash(name + "piston")))
+            return;
+        sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(pistonDir.asRotation(), Managers.ROTATION.lastDir[1],
+                Managers.ON_GROUND.isOnGround(), mc.player.horizontalCollision));
 
         boolean switched = false;
 
         if (hand == null) {
             switch (pistonSwitch.get()) {
-                case Silent -> {
-                    InvUtils.swap(InvUtils.findInHotbar(Items.PISTON).slot(), true);
-                    switched = true;
-                }
-                case PickSilent -> switched = BOInvUtils.pickSwitch(InvUtils.find(Items.PISTON).slot());
-                case InvSwitch -> switched = BOInvUtils.invSwitch(InvUtils.find(Items.PISTON).slot());
+            case Silent -> {
+                InvUtils.swap(InvUtils.findInHotbar(Items.PISTON).slot(), true);
+                switched = true;
+            }
+            case PickSilent -> switched = BOInvUtils.pickSwitch(InvUtils.find(Items.PISTON).slot());
+            case InvSwitch -> switched = BOInvUtils.invSwitch(InvUtils.find(Items.PISTON).slot());
             }
         }
 
@@ -297,32 +237,36 @@ public class PistonPush extends BlackOutModule {
 
         placeBlock(hand, pistonData.pos().toCenterPos(), pistonData.dir(), pistonData.pos());
 
-        if (SettingUtils.shouldRotate(RotationType.BlockPlace)) Managers.ROTATION.end(Objects.hash(name + "piston"));
+        if (SettingUtils.shouldRotate(RotationType.BlockPlace))
+            Managers.ROTATION.end(Objects.hash(name + "piston"));
         pistonTime = System.currentTimeMillis();
         pistonPlaced = true;
 
-        if (pistonSwing.get()) clientSwing(pistonHand.get(), hand);
+        if (pistonSwing.get())
+            clientSwing(pistonHand.get(), hand);
 
         if (switched) {
             switch (pistonSwitch.get()) {
-                case Silent -> InvUtils.swapBack();
-                case PickSilent -> BOInvUtils.pickSwapBack();
-                case InvSwitch -> BOInvUtils.swapBack();
+            case Silent -> InvUtils.swapBack();
+            case PickSilent -> BOInvUtils.pickSwapBack();
+            case InvSwitch -> BOInvUtils.swapBack();
             }
         }
     }
 
     private void placeRedstone() {
-        if (!pistonPlaced || redstonePlaced) return;
-        if (System.currentTimeMillis() - pistonTime < prDelay.get() * 1000) return;
+        if (!pistonPlaced || redstonePlaced)
+            return;
+        if (System.currentTimeMillis() - pistonTime < prDelay.get() * 1000)
+            return;
 
         Hand hand = getHand(redstone.get().i);
         boolean available = hand != null;
 
         if (!available) {
             switch (redstoneSwitch.get()) {
-                case Silent -> available = InvUtils.findInHotbar(redstone.get().i).found();
-                case PickSilent, InvSwitch -> available = InvUtils.find(redstone.get().i).found();
+            case Silent -> available = InvUtils.findInHotbar(redstone.get().i).found();
+            case PickSilent, InvSwitch -> available = InvUtils.find(redstone.get().i).found();
             }
         }
 
@@ -330,18 +274,20 @@ public class PistonPush extends BlackOutModule {
             return;
         }
 
-        if (SettingUtils.shouldRotate(RotationType.BlockPlace) && !Managers.ROTATION.start(redstoneData.pos(), priority, RotationType.BlockPlace, Objects.hash(name + "redstone"))) return;
+        if (SettingUtils.shouldRotate(RotationType.BlockPlace) && !Managers.ROTATION.start(redstoneData.pos(), priority,
+                RotationType.BlockPlace, Objects.hash(name + "redstone")))
+            return;
 
         boolean switched = false;
 
         if (hand == null) {
             switch (redstoneSwitch.get()) {
-                case Silent -> {
-                    InvUtils.swap(InvUtils.findInHotbar(redstone.get().i).slot(), true);
-                    switched = true;
-                }
-                case PickSilent -> switched = BOInvUtils.pickSwitch(InvUtils.find(redstone.get().i).slot());
-                case InvSwitch -> switched = BOInvUtils.invSwitch(InvUtils.find(redstone.get().i).slot());
+            case Silent -> {
+                InvUtils.swap(InvUtils.findInHotbar(redstone.get().i).slot(), true);
+                switched = true;
+            }
+            case PickSilent -> switched = BOInvUtils.pickSwitch(InvUtils.find(redstone.get().i).slot());
+            case InvSwitch -> switched = BOInvUtils.invSwitch(InvUtils.find(redstone.get().i).slot());
             }
         }
 
@@ -353,17 +299,19 @@ public class PistonPush extends BlackOutModule {
 
         placeBlock(hand, redstoneData.pos().toCenterPos(), redstoneData.dir(), redstoneData.pos());
 
-        if (SettingUtils.shouldRotate(RotationType.BlockPlace)) Managers.ROTATION.end(Objects.hash(name + "redstone"));
+        if (SettingUtils.shouldRotate(RotationType.BlockPlace))
+            Managers.ROTATION.end(Objects.hash(name + "redstone"));
         redstonePlaced = true;
         redstoneTime = System.currentTimeMillis();
 
-        if (redstoneSwing.get()) clientSwing(redstoneHand.get(), hand);
+        if (redstoneSwing.get())
+            clientSwing(redstoneHand.get(), hand);
 
         if (switched) {
             switch (redstoneSwitch.get()) {
-                case Silent -> InvUtils.swapBack();
-                case PickSilent -> BOInvUtils.pickSwapBack();
-                case InvSwitch -> BOInvUtils.swapBack();
+            case Silent -> InvUtils.swapBack();
+            case PickSilent -> BOInvUtils.pickSwapBack();
+            case InvSwitch -> BOInvUtils.swapBack();
             }
         }
     }
@@ -373,41 +321,51 @@ public class PistonPush extends BlackOutModule {
     }
 
     private void mineUpdate() {
-        if (!pistonPlaced || !redstonePlaced) return;
-        if (minedThisTick) return;
-        if (System.currentTimeMillis() - redstoneTime < rmDelay.get() * 1000) return;
+        if (!pistonPlaced || !redstonePlaced)
+            return;
+        if (minedThisTick)
+            return;
+        if (System.currentTimeMillis() - redstoneTime < rmDelay.get() * 1000)
+            return;
 
         if (redstonePos == null) {
             return;
         }
 
-        if (redstone.get() == Redstone.Torch && !(mc.world.getBlockState(redstonePos).getBlock() instanceof RedstoneTorchBlock)) {
+        if (redstone.get() == Redstone.Torch
+                && !(mc.world.getBlockState(redstonePos).getBlock() instanceof RedstoneTorchBlock)) {
             return;
         }
-        if (redstone.get() == Redstone.Block && mc.world.getBlockState(redstonePos).getBlock() != Blocks.REDSTONE_BLOCK) {
+        if (redstone.get() == Redstone.Block
+                && mc.world.getBlockState(redstonePos).getBlock() != Blocks.REDSTONE_BLOCK) {
             return;
         }
 
-        if (Modules.get().isActive(AutoMine.class) && redstonePos.equals(Modules.get().get(AutoMine.class).targetPos())) {
+        if (Modules.get().isActive(AutoMine.class)
+                && redstonePos.equals(Modules.get().get(AutoMine.class).targetPos())) {
             return;
         }
 
         AutoMine autoMine = Modules.get().get(AutoMine.class);
 
         if (autoMine.isActive()) {
-            if (redstonePos.equals(autoMine.targetPos())) return;
+            if (redstonePos.equals(autoMine.targetPos()))
+                return;
 
             autoMine.onStart(redstonePos);
         } else {
             Direction mineDir = SettingUtils.getPlaceOnDirection(redstonePos);
 
             if (mineDir != null) {
-                sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, redstonePos, mineDir));
-                sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, redstonePos, mineDir));
+                sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, redstonePos,
+                        mineDir));
+                sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, redstonePos,
+                        mineDir));
             }
         }
 
-        if (!mined) mineTime = System.currentTimeMillis();
+        if (!mined)
+            mineTime = System.currentTimeMillis();
 
         mined = true;
         minedThisTick = true;
@@ -418,42 +376,62 @@ public class PistonPush extends BlackOutModule {
 
         for (AbstractClientPlayerEntity player : mc.world.getPlayers()) {
 
-            if (Friends.get().isFriend(player)) continue;
-            if (player == mc.player) continue;
-            if (mc.player.distanceTo(player) > 10) continue;
-            if (player.getHealth() <= 0) continue;
-            if (player.isSpectator()) continue;
-            if (!OLEPOSSUtils.solid2(player.getBlockPos()) && onlyHole.get() && HoleUtils.getHole(player.getBlockPos(), true, true, false, 1, true).type == HoleType.NotHole) return;
+            if (Friends.get().isFriend(player))
+                continue;
+            if (player == mc.player)
+                continue;
+            if (mc.player.distanceTo(player) > 10)
+                continue;
+            if (player.getHealth() <= 0)
+                continue;
+            if (player.isSpectator())
+                continue;
+            if (!OLEPOSSUtils.solid2(player.getBlockPos()) && onlyHole.get()
+                    && HoleUtils.getHole(player.getBlockPos(), true, true, false, 1, true).type == HoleType.NotHole)
+                return;
 
             updatePos(player);
-            if (pistonPos != null) return;
+            if (pistonPos != null)
+                return;
         }
     }
 
     private void updatePos(PlayerEntity player) {
         BlockPos eyePos = BlockPos.ofFloored(player.getEyePos());
 
-        if (OLEPOSSUtils.solid2(eyePos.up())) return;
+        if (OLEPOSSUtils.solid2(eyePos.up()))
+            return;
 
-        for (Direction dir : Direction.Type.HORIZONTAL.stream().sorted(Comparator.comparingDouble(d -> eyePos.offset(d).toCenterPos().distanceTo(mc.player.getEyePos()))).toList()) {
+        for (Direction dir : Direction.Type.HORIZONTAL.stream()
+                .sorted(Comparator
+                        .comparingDouble(d -> eyePos.offset(d).toCenterPos().distanceTo(mc.player.getEyePos())))
+                .toList()) {
             resetPos();
 
             BlockPos pos = eyePos.offset(dir);
-            if (!upCheck(pos)) continue;
+            if (!upCheck(pos))
+                continue;
 
-            if (!OLEPOSSUtils.replaceable(pos) && !(mc.world.getBlockState(pos).getBlock() instanceof PistonBlock) && mc.world.getBlockState(pos).getBlock() != Blocks.MOVING_PISTON) continue;
-            if (OLEPOSSUtils.solid2(eyePos.offset(dir.getOpposite()))) continue;
-            if (OLEPOSSUtils.solid2(eyePos.offset(dir.getOpposite()).up())) continue;
-            if (!OLEPOSSUtils.solid2(eyePos.offset(dir.getOpposite()).down())) continue;
+            if (!OLEPOSSUtils.replaceable(pos) && !(mc.world.getBlockState(pos).getBlock() instanceof PistonBlock)
+                    && mc.world.getBlockState(pos).getBlock() != Blocks.MOVING_PISTON)
+                continue;
+            if (OLEPOSSUtils.solid2(eyePos.offset(dir.getOpposite())))
+                continue;
+            if (OLEPOSSUtils.solid2(eyePos.offset(dir.getOpposite()).up()))
+                continue;
+            if (!OLEPOSSUtils.solid2(eyePos.offset(dir.getOpposite()).down()))
+                continue;
 
             PlaceData data = SettingUtils.getPlaceData(pos);
-            if (data == null || !data.valid()) continue;
+            if (data == null || !data.valid())
+                continue;
 
             pistonData = data;
             pistonDir = dir;
             updateRedstone(pos);
 
-            if (redstonePos == null) continue;
+            if (redstonePos == null)
+                continue;
 
             if (startPos == null) {
                 startPos = player.getBlockPos();
@@ -466,12 +444,17 @@ public class PistonPush extends BlackOutModule {
 
     private void updateRedstone(BlockPos pos) {
         if (redstone.get() == Redstone.Torch) {
-            for (Direction direction : Arrays.stream(Direction.values()).sorted(Comparator.comparingDouble(i -> pos.offset(i).toCenterPos().distanceTo(mc.player.getEyePos()))).toList()) {
-                if (direction == pistonDir.getOpposite() || direction == Direction.DOWN || direction == Direction.UP) continue;
+            for (Direction direction : Arrays.stream(Direction.values())
+                    .sorted(Comparator
+                            .comparingDouble(i -> pos.offset(i).toCenterPos().distanceTo(mc.player.getEyePos())))
+                    .toList()) {
+                if (direction == pistonDir.getOpposite() || direction == Direction.DOWN || direction == Direction.UP)
+                    continue;
 
                 BlockPos position = pos.offset(direction);
 
-                if (!OLEPOSSUtils.replaceable(position) && !(mc.world.getBlockState(position).getBlock() instanceof RedstoneTorchBlock)) {
+                if (!OLEPOSSUtils.replaceable(position)
+                        && !(mc.world.getBlockState(position).getBlock() instanceof RedstoneTorchBlock)) {
                     continue;
                 }
 
@@ -487,10 +470,12 @@ public class PistonPush extends BlackOutModule {
                     if (mc.world.getBlockState(b).getBlock() instanceof TorchBlock) {
                         return false;
                     }
-                    return !(mc.world.getBlockState(b).getBlock() instanceof PistonBlock) && !(mc.world.getBlockState(b).getBlock() instanceof PistonHeadBlock);
+                    return !(mc.world.getBlockState(b).getBlock() instanceof PistonBlock)
+                            && !(mc.world.getBlockState(b).getBlock() instanceof PistonHeadBlock);
                 });
 
-                if (redstoneData.valid() && SettingUtils.inPlaceRange(redstoneData.pos()) && SettingUtils.inMineRange(position)) {
+                if (redstoneData.valid() && SettingUtils.inPlaceRange(redstoneData.pos())
+                        && SettingUtils.inMineRange(position)) {
                     redstonePos = position;
                     return;
                 }
@@ -499,17 +484,21 @@ public class PistonPush extends BlackOutModule {
             return;
         }
 
-        for (Direction direction : Arrays.stream(Direction.values()).sorted(Comparator.comparingDouble(i -> pos.offset(i).toCenterPos().distanceTo(mc.player.getEyePos()))).toList()) {
+        for (Direction direction : Arrays.stream(Direction.values())
+                .sorted(Comparator.comparingDouble(i -> pos.offset(i).toCenterPos().distanceTo(mc.player.getEyePos())))
+                .toList()) {
             if (direction == pistonDir.getOpposite() || direction == Direction.DOWN) {
                 continue;
             }
 
             BlockPos position = pos.offset(direction);
 
-            if (!OLEPOSSUtils.replaceable(position) && mc.world.getBlockState(position).getBlock() != Blocks.REDSTONE_BLOCK) {
+            if (!OLEPOSSUtils.replaceable(position)
+                    && mc.world.getBlockState(position).getBlock() != Blocks.REDSTONE_BLOCK) {
                 continue;
             }
-            if (EntityUtils.intersectsWithEntity(Box.from(new BlockBox(position)), entity -> !entity.isSpectator() && entity instanceof PlayerEntity)) {
+            if (EntityUtils.intersectsWithEntity(Box.from(new BlockBox(position)),
+                    entity -> !entity.isSpectator() && entity instanceof PlayerEntity)) {
                 continue;
             }
 
@@ -526,7 +515,6 @@ public class PistonPush extends BlackOutModule {
     private boolean upCheck(BlockPos pos) {
         double dx = mc.player.getEyePos().x - pos.getX() - 0.5;
         double dz = mc.player.getEyePos().z - pos.getZ() - 0.5;
-
 
         return Math.sqrt(dx * dx + dz * dz) > Math.abs(mc.player.getEyePos().y - pos.getY() - 0.5);
     }
@@ -554,9 +542,8 @@ public class PistonPush extends BlackOutModule {
     }
 
     private Hand getHand(Item item) {
-        return Managers.HOLDING.isHolding(item) ? Hand.MAIN_HAND :
-            mc.player.getOffHandStack().getItem() == item ? Hand.OFF_HAND :
-                null;
+        return Managers.HOLDING.isHolding(item) ? Hand.MAIN_HAND
+                : mc.player.getOffHandStack().getItem() == item ? Hand.OFF_HAND : null;
     }
 
     private void resetPos() {
@@ -569,16 +556,11 @@ public class PistonPush extends BlackOutModule {
     }
 
     public enum SwitchMode {
-        Disabled,
-        Silent,
-        PickSilent,
-        InvSwitch
+        Disabled, Silent, PickSilent, InvSwitch
     }
 
-
     public enum Redstone {
-        Torch(Items.REDSTONE_TORCH, Blocks.REDSTONE_TORCH),
-        Block(Items.REDSTONE_BLOCK, Blocks.REDSTONE_BLOCK);
+        Torch(Items.REDSTONE_TORCH, Blocks.REDSTONE_TORCH), Block(Items.REDSTONE_BLOCK, Blocks.REDSTONE_BLOCK);
 
         public final Item i;
         public final Block b;

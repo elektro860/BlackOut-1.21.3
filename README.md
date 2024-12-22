@@ -4,6 +4,8 @@
 [![Discord](https://img.shields.io/discord/1020709439742947380?color=blue&label=Discord&logo=Discord&style=for-the-badge)](https://discord.gg/mmWz9Dz4Y9)
 [![Downloads](https://img.shields.io/github/downloads/KassuK1/BlackOut/total?color=blueviolet&style=for-the-badge)](https://github.com/KassuK1/BlackOut/releases)
 
+# I have not tested every module so there could be non-functional modules, if you find one make sure to create an Issue
+
 # Blackout
 An addon for Meteor client that adds a variety of new/improved features to the Meteor client
 such as a new and improved CrystalAura, BedAura and PacketFly and a lot more of new things to push you above the competition.
@@ -25,6 +27,8 @@ The development of the addon might not be super active due to us having our own 
 Doogie13 for helping with the block mining calculations and step offsets.
 
 RickyTheRaccoon for his InvSwitch.
+
+Elektro for updating to 1.21.3
 
 #### Official youtube channel https://www.youtube.com/channel/UCq_NxTxgS-Xk0TsSmhqXoyg
 

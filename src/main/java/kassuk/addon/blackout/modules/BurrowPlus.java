@@ -35,77 +35,69 @@ public class BurrowPlus extends BlackOutModule {
     private final SettingGroup sgRubberband = settings.createGroup("Rubberband");
     private final SettingGroup sgRender = settings.createGroup("Render");
 
-    //--------------------General--------------------//
+    // --------------------General--------------------//
     private final Setting<SwitchMode> switchMode = sgGeneral.add(new EnumSetting.Builder<SwitchMode>()
-        .name("Switch Mode")
-        .description("Which method of switching should be used.")
-        .defaultValue(SwitchMode.Silent)
-        .build()
-    );
+            .name("Switch Mode")
+            .description("Which method of switching should be used.")
+            .defaultValue(SwitchMode.Silent)
+            .build());
     private final Setting<List<Block>> blocks = sgGeneral.add(new BlockListSetting.Builder()
-        .name("Blocks")
-        .description("Blocks to use.")
-        .defaultValue(Blocks.OBSIDIAN, Blocks.ENDER_CHEST)
-        .build()
-    );
+            .name("Blocks")
+            .description("Blocks to use.")
+            .defaultValue(Blocks.OBSIDIAN, Blocks.ENDER_CHEST)
+            .build());
     private final Setting<Boolean> instaRot = sgGeneral.add(new BoolSetting.Builder()
-        .name("Instant Rotation")
-        .description("Instantly rotates.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Instant Rotation")
+            .description("Instantly rotates.")
+            .defaultValue(false)
+            .build());
     private final Setting<Boolean> pFly = sgGeneral.add(new BoolSetting.Builder()
-        .name("Packet Fly")
-        .description("Enables packetfly after lagging back inside the block.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Packet Fly")
+            .description("Enables packetfly after lagging back inside the block.")
+            .defaultValue(false)
+            .build());
     private final Setting<Boolean> scaffold = sgGeneral.add(new BoolSetting.Builder()
-        .name("Scaffold")
-        .description("Enables scaffold+ after lagging back inside the block.")
-        .defaultValue(false)
-        .visible(pFly::get)
-        .build()
-    );
+            .name("Scaffold")
+            .description("Enables scaffold+ after lagging back inside the block.")
+            .defaultValue(false)
+            .visible(pFly::get)
+            .build());
 
-    //--------------------Rubberband--------------------//
+    // --------------------Rubberband--------------------//
     private final Setting<Double> rubberbandOffset = sgRubberband.add(new DoubleSetting.Builder()
-        .name("Rubberband Offset")
-        .description("Y offset of rubberband packet.")
-        .defaultValue(9)
-        .sliderRange(-10, 10)
-        .build()
-    );
+            .name("Rubberband Offset")
+            .description("Y offset of rubberband packet.")
+            .defaultValue(9)
+            .sliderRange(-10, 10)
+            .build());
     private final Setting<Integer> rubberbandPackets = sgRubberband.add(new IntSetting.Builder()
-        .name("Rubberband Packets")
-        .description("How many offset packets to send.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Rubberband Packets")
+            .description("How many offset packets to send.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
 
-    //--------------------Render--------------------//
+    // --------------------Render--------------------//
     private final Setting<Boolean> placeSwing = sgRender.add(new BoolSetting.Builder()
-        .name("Swing")
-        .description("Renders swing animation when placing a block.")
-        .defaultValue(true)
-        .build()
-    );
+            .name("Swing")
+            .description("Renders swing animation when placing a block.")
+            .defaultValue(true)
+            .build());
     private final Setting<SwingHand> placeHand = sgRender.add(new EnumSetting.Builder<SwingHand>()
-        .name("Swing Hand")
-        .description("Which hand should be swung.")
-        .defaultValue(SwingHand.RealHand)
-        .visible(placeSwing::get)
-        .build()
-    );
+            .name("Swing Hand")
+            .description("Which hand should be swung.")
+            .defaultValue(SwingHand.RealHand)
+            .visible(placeSwing::get)
+            .build());
 
     private boolean success = false;
     private boolean enabledPFly = false;
     private boolean enabledScaffold = false;
 
     private final Predicate<ItemStack> predicate = itemStack -> {
-        if (!(itemStack.getItem() instanceof BlockItem block)) return false;
+        if (!(itemStack.getItem() instanceof BlockItem block))
+            return false;
 
         return blocks.get().contains(block.getBlock());
     };
@@ -117,10 +109,12 @@ public class BurrowPlus extends BlackOutModule {
         enabledPFly = false;
         enabledScaffold = false;
 
-        if (mc.player == null || mc.world == null) {return;}
+        if (mc.player == null || mc.world == null) {
+            return;
+        }
 
-        Hand hand = predicate.test(Managers.HOLDING.getStack()) ? Hand.MAIN_HAND :
-            predicate.test(mc.player.getOffHandStack()) ? Hand.OFF_HAND : null;
+        Hand hand = predicate.test(Managers.HOLDING.getStack()) ? Hand.MAIN_HAND
+                : predicate.test(mc.player.getOffHandStack()) ? Hand.OFF_HAND : null;
 
         boolean blocksPresent = hand != null;
 
@@ -131,10 +125,13 @@ public class BurrowPlus extends BlackOutModule {
             }
         }
 
-        if (!blocksPresent) return;
+        if (!blocksPresent)
+            return;
 
-        boolean rotated = instaRot.get() || !SettingUtils.shouldRotate(RotationType.BlockPlace) || Managers.ROTATION.startPitch(90, priority, RotationType.BlockPlace, Objects.hash(name + "placing"));
-        if (!rotated) return;
+        boolean rotated = instaRot.get() || !SettingUtils.shouldRotate(RotationType.BlockPlace)
+                || Managers.ROTATION.startPitch(90, priority, RotationType.BlockPlace, Objects.hash(name + "placing"));
+        if (!rotated)
+            return;
 
         boolean switched = hand != null;
 
@@ -153,7 +150,8 @@ public class BurrowPlus extends BlackOutModule {
         }
 
         if (instaRot.get() && SettingUtils.shouldRotate(RotationType.BlockPlace)) {
-            sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(Managers.ROTATION.lastDir[0], 90, Managers.ON_GROUND.isOnGround()));
+            sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(Managers.ROTATION.lastDir[0], 90,
+                    Managers.ON_GROUND.isOnGround(), mc.player.horizontalCollision));
         }
 
         double y = 0;
@@ -163,16 +161,22 @@ public class BurrowPlus extends BlackOutModule {
             y += velocity;
             velocity = (velocity - 0.08) * 0.98;
 
-            sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(mc.player.getX(), mc.player.getY() + y, mc.player.getZ(), false));
+            sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(mc.player.getX(), mc.player.getY() + y,
+                    mc.player.getZ(), false, mc.player.horizontalCollision));
         }
 
-        placeBlock(Hand.MAIN_HAND, mc.player.getBlockPos().down().toCenterPos(), Direction.UP, mc.player.getBlockPos().down());
-        if (!instaRot.get() && SettingUtils.shouldRotate(RotationType.BlockPlace)) Managers.ROTATION.end(Objects.hash(name + "placing"));
+        placeBlock(Hand.MAIN_HAND, mc.player.getBlockPos().down().toCenterPos(), Direction.UP,
+                mc.player.getBlockPos().down());
+        if (!instaRot.get() && SettingUtils.shouldRotate(RotationType.BlockPlace))
+            Managers.ROTATION.end(Objects.hash(name + "placing"));
 
-        if (placeSwing.get()) clientSwing(placeHand.get(), Hand.MAIN_HAND);
+        if (placeSwing.get())
+            clientSwing(placeHand.get(), Hand.MAIN_HAND);
 
         for (int i = 0; i < rubberbandPackets.get(); i++) {
-            sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(mc.player.getX(), mc.player.getY() + y + rubberbandOffset.get(), mc.player.getZ(), false));
+            sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(mc.player.getX(),
+                    mc.player.getY() + y + rubberbandOffset.get(), mc.player.getZ(), false,
+                    mc.player.horizontalCollision));
         }
 
         success = true;

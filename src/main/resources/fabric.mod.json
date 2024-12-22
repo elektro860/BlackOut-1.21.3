@@ -3,7 +3,7 @@
   "id": "blackout",
   "version": "${version}",
   "name": "Blackout",
-  "description": "Epik cheetos addon.",
+  "description": "Epik cheetos addon. Updated to 1.21.3 by Elektro",
   "authors": [
     "KassuK and OLEPOSSU"
   ],
@@ -26,7 +26,7 @@
     "meteor-client:color": "225,25,25"
   },
   "depends": {
-    "java": ">=17",
+    "java": ">=21",
     "minecraft": ">=${mc_version}",
     "meteor-client": "*"
   }

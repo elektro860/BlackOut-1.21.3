@@ -39,54 +39,48 @@ public class TargetHud extends HudElement {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
-        .name("Mode")
-        .description("What mode to use for the TargetHud.")
-        .defaultValue(Mode.Blackout)
-        .build()
-    );
+            .name("Mode")
+            .description("What mode to use for the TargetHud.")
+            .defaultValue(Mode.Blackout)
+            .build());
 
     private final Setting<Double> scale = sgGeneral.add(new DoubleSetting.Builder()
-        .name("Scale")
-        .description("Scale to render at")
-        .defaultValue(1)
-        .range(0, 5)
-        .sliderRange(0, 5)
-        .build()
-    );
+            .name("Scale")
+            .description("Scale to render at")
+            .defaultValue(1)
+            .range(0, 5)
+            .sliderRange(0, 5)
+            .build());
     private final Setting<SettingColor> bgColor = sgGeneral.add(new ColorSetting.Builder()
-        .name("Background Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(0, 0, 0, 200))
-        .build()
-    );
+            .name("Background Color")
+            .description(BlackOut.COLOR)
+            .defaultValue(new SettingColor(0, 0, 0, 200))
+            .build());
     private final Setting<SettingColor> textColor = sgGeneral.add(new ColorSetting.Builder()
-        .name("Text Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 255, 255, 255))
-        .build()
-    );
+            .name("Text Color")
+            .description(BlackOut.COLOR)
+            .defaultValue(new SettingColor(255, 255, 255, 255))
+            .build());
     private final Setting<SettingColor> healthColor = sgGeneral.add(new ColorSetting.Builder()
-        .name("Health Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 0, 0, 255))
-        .build()
-    );
+            .name("Health Color")
+            .description(BlackOut.COLOR)
+            .defaultValue(new SettingColor(255, 0, 0, 255))
+            .build());
     private final Setting<SettingColor> absorptionColor = sgGeneral.add(new ColorSetting.Builder()
-        .name("Absorption Color")
-        .description(BlackOut.COLOR)
-        .defaultValue(new SettingColor(255, 255, 0, 255))
-        .build()
-    );
+            .name("Absorption Color")
+            .description(BlackOut.COLOR)
+            .defaultValue(new SettingColor(255, 255, 0, 255))
+            .build());
     private final Setting<Double> damageTilt = sgGeneral.add(new DoubleSetting.Builder()
-        .name("Damage Tilt")
-        .description("How many degrees should the box be rotated when enemy takes damage.")
-        .defaultValue(10)
-        .min(0)
-        .sliderRange(0, 45)
-        .build()
-    );
+            .name("Damage Tilt")
+            .description("How many degrees should the box be rotated when enemy takes damage.")
+            .defaultValue(10)
+            .min(0)
+            .sliderRange(0, 45)
+            .build());
 
-    public static final HudElementInfo<TargetHud> INFO = new HudElementInfo<>(BlackOut.HUD_BLACKOUT, "TargetHud", "A target hud the fuck you thinkin bruv.", TargetHud::new);
+    public static final HudElementInfo<TargetHud> INFO = new HudElementInfo<>(BlackOut.HUD_BLACKOUT, "TargetHud",
+            "A target hud the fuck you thinkin bruv.", TargetHud::new);
 
     public TargetHud() {
         super(INFO);
@@ -117,7 +111,8 @@ public class TargetHud extends HudElement {
         List<AbstractClientPlayerEntity> toRemove = new ArrayList<>();
 
         for (Map.Entry<AbstractClientPlayerEntity, Integer> entry : tog.entrySet()) {
-            if (mc.world.getPlayers().contains(entry.getKey()) && !entry.getKey().isSpectator() && entry.getKey().getHealth() > 0) {
+            if (mc.world.getPlayers().contains(entry.getKey()) && !entry.getKey().isSpectator()
+                    && entry.getKey().getHealth() > 0) {
                 continue;
             }
 
@@ -156,9 +151,13 @@ public class TargetHud extends HudElement {
 
     @EventHandler(priority = 10000)
     private void onReceive(PacketEvent.Receive event) {
-        if (!(event.packet instanceof EntityStatusS2CPacket packet)) {return;}
+        if (!(event.packet instanceof EntityStatusS2CPacket packet)) {
+            return;
+        }
 
-        if (packet.getStatus() != 35) {return;}
+        if (packet.getStatus() != 35) {
+            return;
+        }
 
         Entity entity = packet.getEntity(mc.world);
 
@@ -197,7 +196,8 @@ public class TargetHud extends HudElement {
             RenderUtils.rounded(stack, 15, 15, width - 30, height - 30, 15, 10, bgColor.get().getPacked());
 
             // Face
-            drawFace(renderer, scaleAnimation * scale.get().floatValue(), x + (1 - scaleAnimation) * getWidth() / 2f, y + (1 - scaleAnimation) * getHeight() / 2f, tilt);
+            drawFace(renderer, scaleAnimation * scale.get().floatValue(), x + (1 - scaleAnimation) * getWidth() / 2f,
+                    y + (1 - scaleAnimation) * getHeight() / 2f, tilt);
 
             // Name
             RenderUtils.text(renderName, stack, 60, 20, textColor.get().getPacked());
@@ -206,19 +206,24 @@ public class TargetHud extends HudElement {
             RenderUtils.text(Math.round(renderPing) + "ms", stack, 60, 30, textColor.get().getPacked());
 
             // Health
-            RenderUtils.text(String.valueOf(Math.round((renderHealth) * 10) / 10f), stack, 20, 81 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
+            RenderUtils.text(String.valueOf(Math.round((renderHealth) * 10) / 10f), stack, 20,
+                    81 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
 
-            float barAnimation = MathHelper.lerp(mc.getTickDelta() / 10, lastHp, renderHealth);
+            float barAnimation = MathHelper.lerp((float) renderer.delta / 10, lastHp, renderHealth);
 
             float barStart = Math.max(mc.textRenderer.getWidth(String.valueOf(Math.round((renderHealth) * 10) / 10f)),
-                mc.textRenderer.getWidth("36.0")) + 28;
+                    mc.textRenderer.getWidth("36.0")) + 28;
 
             // Health Bar
             if (barAnimation > 0) {
-                RenderUtils.rounded(stack, barStart, 80, MathHelper.clamp(barAnimation / 20, 0, 1) * (width - 30 - barStart), 2, 3, 10, healthColor.get().getPacked());
+                RenderUtils.rounded(stack, barStart, 80,
+                        MathHelper.clamp(barAnimation / 20, 0, 1) * (width - 30 - barStart), 2, 3, 10,
+                        healthColor.get().getPacked());
             }
             if (barAnimation > 20) {
-                RenderUtils.rounded(stack, barStart, 80, MathHelper.clamp((barAnimation - 20) / 16, 0, 1) * (width - 30 - barStart), 2, 3, 10, absorptionColor.get().getPacked());
+                RenderUtils.rounded(stack, barStart, 80,
+                        MathHelper.clamp((barAnimation - 20) / 16, 0, 1) * (width - 30 - barStart), 2, 3, 10,
+                        absorptionColor.get().getPacked());
             }
         }
         if (mode.get() == Mode.ExhibitionOld) {
@@ -236,7 +241,6 @@ public class TargetHud extends HudElement {
             stack.translate(x, y, 0);
             stack.scale((float) (scale.get() * 1f), (float) (scale.get() * 1f), 1);
 
-
             // Background
             RenderUtils.quad(stack, 0, 0, width, height, bgColor.get().getPacked());
 
@@ -246,12 +250,15 @@ public class TargetHud extends HudElement {
             drawFace(renderer, scale.get().floatValue(), x, y, 0);
 
             // Name
-            stack.scale(2.0f,2.0f,1);
+            stack.scale(2.0f, 2.0f, 1);
             RenderUtils.text(renderName, stack, 33, 2, textColor.get().getPacked());
 
             // Health
-            stack.scale(0.5f,0.5f,1);
-            RenderUtils.text(Math.round((renderHealth) * 10) / 10f + " Dist: " + Math.round(mc.player.distanceTo(target) * 10) / 10f, stack, 66, 35 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
+            stack.scale(0.5f, 0.5f, 1);
+            RenderUtils.text(
+                    Math.round((renderHealth) * 10) / 10f + " Dist: "
+                            + Math.round(mc.player.distanceTo(target) * 10) / 10f,
+                    stack, 66, 35 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
 
             // Bar
             stack.scale(2, 2, 1);
@@ -259,7 +266,8 @@ public class TargetHud extends HudElement {
             int progress = (int) (Math.ceil(MathHelper.clamp(renderHealth, 0, 20)));
 
             for (int i = 0; i < 10; i++) {
-                RenderUtils.quad(stack, 33 + i * 8, 11, 3 * Math.min(progress, 2), 3, new Color(204, 204, 0, 255).getPacked());
+                RenderUtils.quad(stack, 33 + i * 8, 11, 3 * Math.min(progress, 2), 3,
+                        new Color(204, 204, 0, 255).getPacked());
                 progress -= 2;
 
                 if (progress <= 0) {
@@ -267,12 +275,18 @@ public class TargetHud extends HudElement {
                 }
             }
 
-            stack.scale(0.5f,0.5f,1);
+            stack.scale(0.5f, 0.5f, 1);
             // Misc info
-            RenderUtils.text("Yaw: " + Math.round((target.getYaw()) * 10) / 10f + " Pitch: " + Math.round(target.getPitch() * 10) / 10f + " BodyYaw: " + Math.round((target.getBodyYaw()) * 10) / 10f , stack, 66, 45 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
-            RenderUtils.text("TOG: " + (tog.getOrDefault(target, 0)) + " HURT: " + ((target.hurtTime) * 10) / 10f + " TE: " + target.age, stack, 66, 55 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
+            RenderUtils.text(
+                    "Yaw: " + Math.round((target.getYaw()) * 10) / 10f + " Pitch: "
+                            + Math.round(target.getPitch() * 10) / 10f + " BodyYaw: "
+                            + Math.round((target.getBodyYaw()) * 10) / 10f,
+                    stack, 66, 45 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
+            RenderUtils.text("TOG: " + (tog.getOrDefault(target, 0)) + " HURT: " + ((target.hurtTime) * 10) / 10f
+                    + " TE: " + target.age, stack, 66, 55 - mc.textRenderer.fontHeight / 2f,
+                    textColor.get().getPacked());
         }
-        if (mode.get() == Mode.Exhibition){
+        if (mode.get() == Mode.Exhibition) {
             int height = 60;
             int width = 190;
             setSize(width * scale.get(), height * scale.get());
@@ -292,15 +306,18 @@ public class TargetHud extends HudElement {
             RenderUtils.quad(stack, -1, -1, width + 2, height + 2, new Color(32, 32, 32, 255).getPacked());
             RenderUtils.quad(stack, 0, 0, width, height, new Color(52, 52, 52, 255).getPacked());
 
-            //PlayerModel
+            // PlayerModel
 
             // Name
-            stack.scale(1.5f,1.5f,1);
+            stack.scale(1.5f, 1.5f, 1);
             RenderUtils.text(renderName, stack, 41, 2, textColor.get().getPacked());
 
             // Health and Distance
-            stack.scale(0.5f,0.5f,1);
-            RenderUtils.text(Math.round((renderHealth) * 10) / 10f + " Dist: " + Math.round(mc.player.distanceTo(target) * 10) / 10f, stack, 83, 40 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
+            stack.scale(0.5f, 0.5f, 1);
+            RenderUtils.text(
+                    Math.round((renderHealth) * 10) / 10f + " Dist: "
+                            + Math.round(mc.player.distanceTo(target) * 10) / 10f,
+                    stack, 83, 40 - mc.textRenderer.fontHeight / 2f, textColor.get().getPacked());
 
             // Bar
             stack.scale(2, 2, 1);
@@ -308,7 +325,8 @@ public class TargetHud extends HudElement {
             int progress = (int) (Math.ceil(MathHelper.clamp(renderHealth, 0, 20)));
 
             for (int i = 0; i < 10; i++) {
-                RenderUtils.quad(stack, 41 + i * 8, 12, 3 * Math.min(progress, 2), 3, new Color(204, 204, 0, 255).getPacked());
+                RenderUtils.quad(stack, 41 + i * 8, 12, 3 * Math.min(progress, 2), 3,
+                        new Color(204, 204, 0, 255).getPacked());
                 progress -= 2;
 
                 if (progress <= 0) {
@@ -316,8 +334,8 @@ public class TargetHud extends HudElement {
                 }
             }
 
-            //Armor
-            stack.scale(0.9f,0.9f,1);
+            // Armor
+            stack.scale(0.9f, 0.9f, 1);
             MatrixStack drawStack = renderer.drawContext.getMatrices();
             drawStack.push();
 
@@ -330,7 +348,7 @@ public class TargetHud extends HudElement {
                 renderer.drawContext.drawItem(itemStack, (3 - i) * 20 + 42, 25);
             }
 
-            //Item
+            // Item
             ItemStack itemStack = target.getMainHandStack();
 
             renderer.drawContext.drawItem(itemStack, 122, 25);
@@ -349,21 +367,27 @@ public class TargetHud extends HudElement {
         drawStack.scale(scale, scale, 1);
         drawStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(tilt));
 
-        PlayerSkinDrawer.draw(renderer.drawContext, renderSkin,20, 18, 32, false, false);
+        PlayerSkinDrawer.draw(renderer.drawContext, renderSkin, 20, 18, 32, false, false, 255);
 
         drawStack.pop();
     }
 
     private void updateTarget() {
         target = null;
-        if (mc.world == null) {return;}
+        if (mc.world == null) {
+            return;
+        }
 
         AbstractClientPlayerEntity closest = null;
         double distance = Double.MAX_VALUE;
 
         for (AbstractClientPlayerEntity player : mc.world.getPlayers()) {
-            if (player == mc.player) {continue;}
-            if (Friends.get().isFriend(player)) {continue;}
+            if (player == mc.player) {
+                continue;
+            }
+            if (Friends.get().isFriend(player)) {
+                continue;
+            }
 
             double d = mc.player.distanceTo(player);
 
@@ -387,6 +411,7 @@ public class TargetHud extends HudElement {
             renderPing = playerListEntry == null ? -1 : playerListEntry.getLatency();
         }
     }
+
     public enum Mode {
         Blackout,
         ExhibitionOld,

@@ -9,6 +9,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.mixininterface.IVec3d;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.entity.player.PlayerPosition;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
@@ -29,153 +30,133 @@ public class PacketFly extends BlackOutModule {
     private final SettingGroup sgFly = settings.createGroup("Fly");
     private final SettingGroup sgPhase = settings.createGroup("Phase");
 
-    //--------------------General--------------------//
+    // --------------------General--------------------//
     private final Setting<Boolean> onGroundSpoof = sgGeneral.add(new BoolSetting.Builder()
-        .name("On Ground Spoof")
-        .description("Spoofs on ground.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("On Ground Spoof")
+            .description("Spoofs on ground.")
+            .defaultValue(false)
+            .build());
     private final Setting<Boolean> onGround = sgGeneral.add(new BoolSetting.Builder()
-        .name("On Ground")
-        .description("Should we tell the server that you are on ground.")
-        .defaultValue(false)
-        .visible(onGroundSpoof::get)
-        .build()
-    );
+            .name("On Ground")
+            .description("Should we tell the server that you are on ground.")
+            .defaultValue(false)
+            .visible(onGroundSpoof::get)
+            .build());
     private final Setting<Integer> xzBound = sgGeneral.add(new IntSetting.Builder()
-        .name("XZ Bound")
-        .description("Bounds offset horizontally.")
-        .defaultValue(1337)
-        .sliderRange(-1337, 1337)
-        .build()
-    );
+            .name("XZ Bound")
+            .description("Bounds offset horizontally.")
+            .defaultValue(1337)
+            .sliderRange(-1337, 1337)
+            .build());
     private final Setting<Integer> yBound = sgGeneral.add(new IntSetting.Builder()
-        .name("Y Bound")
-        .description("Bounds offset vertically.")
-        .defaultValue(0)
-        .sliderRange(-1337, 1337)
-        .build()
-    );
+            .name("Y Bound")
+            .description("Bounds offset vertically.")
+            .defaultValue(0)
+            .sliderRange(-1337, 1337)
+            .build());
     private final Setting<Boolean> strictVertical = sgGeneral.add(new BoolSetting.Builder()
-        .name("Strict Vertical")
-        .description("Doesn't move horizontally and vertically in the same packet.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Strict Vertical")
+            .description("Doesn't move horizontally and vertically in the same packet.")
+            .defaultValue(false)
+            .build());
     private final Setting<Boolean> antiKick = sgGeneral.add(new BoolSetting.Builder()
-        .name("Anti-Kick")
-        .description("Slowly falls down.")
-        .defaultValue(true)
-        .build()
-    );
+            .name("Anti-Kick")
+            .description("Slowly falls down.")
+            .defaultValue(true)
+            .build());
     private final Setting<Double> antiKickAmount = sgGeneral.add(new DoubleSetting.Builder()
-        .name("Anti-Kick Multiplier")
-        .description("Fall speed multiplier for antikick (0.04 blocks * multiplier).")
-        .defaultValue(1)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Anti-Kick Multiplier")
+            .description("Fall speed multiplier for antikick (0.04 blocks * multiplier).")
+            .defaultValue(1)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Integer> antiKickDelay = sgGeneral.add(new IntSetting.Builder()
-        .name("Anti-Kick Delay")
-        .description("Tick delay between moving anti kick packets.")
-        .defaultValue(10)
-        .min(1)
-        .sliderRange(0, 100)
-        .build()
-    );
+            .name("Anti-Kick Delay")
+            .description("Tick delay between moving anti kick packets.")
+            .defaultValue(10)
+            .min(1)
+            .sliderRange(0, 100)
+            .build());
     private final Setting<Boolean> predictID = sgGeneral.add(new BoolSetting.Builder()
-        .name("Predict ID")
-        .description("Predicts the id of next rubberband.")
-        .defaultValue(true)
-        .build()
-    );
+            .name("Predict ID")
+            .description("Predicts the id of next rubberband.")
+            .defaultValue(true)
+            .build());
     private final Setting<Boolean> debugID = sgGeneral.add(new BoolSetting.Builder()
-        .name("Debug ID")
-        .description("Sends rubberband packet id in chat.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Debug ID")
+            .description("Sends rubberband packet id in chat.")
+            .defaultValue(false)
+            .build());
 
-    //--------------------Fly--------------------//
+    // --------------------Fly--------------------//
     private final Setting<Double> packets = sgFly.add(new DoubleSetting.Builder()
-        .name("Fly Packets")
-        .description("How many packets to send every movement tick.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Fly Packets")
+            .description("How many packets to send every movement tick.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Double> speed = sgFly.add(new DoubleSetting.Builder()
-        .name("Fly Speed")
-        .description("Distance to travel each packet.")
-        .defaultValue(0.2873)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Fly Speed")
+            .description("Distance to travel each packet.")
+            .defaultValue(0.2873)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Boolean> fastVertical = sgFly.add(new BoolSetting.Builder()
-        .name("Fast Vertical Fly")
-        .description("Sends multiple packets every movement tick while going up.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Fast Vertical Fly")
+            .description("Sends multiple packets every movement tick while going up.")
+            .defaultValue(false)
+            .build());
     private final Setting<Double> downSpeed = sgFly.add(new DoubleSetting.Builder()
-        .name("Fly Down Speed")
-        .description("How fast to fly down.")
-        .defaultValue(0.062)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Fly Down Speed")
+            .description("How fast to fly down.")
+            .defaultValue(0.062)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Double> upSpeed = sgFly.add(new DoubleSetting.Builder()
-        .name("Fly Up Speed")
-        .description("How fast to fly up.")
-        .defaultValue(0.062)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Fly Up Speed")
+            .description("How fast to fly up.")
+            .defaultValue(0.062)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
 
-    //--------------------Phase--------------------//
+    // --------------------Phase--------------------//
     private final Setting<Double> phasePackets = sgPhase.add(new DoubleSetting.Builder()
-        .name("Phase Packets")
-        .description("How many packets to send every movement tick.")
-        .defaultValue(1)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Phase Packets")
+            .description("How many packets to send every movement tick.")
+            .defaultValue(1)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Double> phaseSpeed = sgPhase.add(new DoubleSetting.Builder()
-        .name("Phase Speed")
-        .description("Distance to travel each packet.")
-        .defaultValue(0.062)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Phase Speed")
+            .description("Distance to travel each packet.")
+            .defaultValue(0.062)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Boolean> phaseFastVertical = sgPhase.add(new BoolSetting.Builder()
-        .name("Fast Vertical Phase")
-        .description("Sends multiple packets every movement tick while going up.")
-        .defaultValue(false)
-        .build()
-    );
+            .name("Fast Vertical Phase")
+            .description("Sends multiple packets every movement tick while going up.")
+            .defaultValue(false)
+            .build());
     private final Setting<Double> phaseDownSpeed = sgPhase.add(new DoubleSetting.Builder()
-        .name("Phase Down Speed")
-        .description("How fast to phase down.")
-        .defaultValue(0.062)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Phase Down Speed")
+            .description("How fast to phase down.")
+            .defaultValue(0.062)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
     private final Setting<Double> phaseUpSpeed = sgPhase.add(new DoubleSetting.Builder()
-        .name("Phase Up Speed")
-        .description("How fast to phase up.")
-        .defaultValue(0.062)
-        .min(0)
-        .sliderRange(0, 10)
-        .build()
-    );
+            .name("Phase Up Speed")
+            .description("How fast to phase up.")
+            .defaultValue(0.062)
+            .min(0)
+            .sliderRange(0, 10)
+            .build());
 
     private int ticks = 0;
     private int id = -1;
@@ -195,6 +176,7 @@ public class PacketFly extends BlackOutModule {
         ticks = 0;
         validPos.clear();
     }
+
     @Override
     public void onDeactivate() {
         validPos.clear();
@@ -262,7 +244,8 @@ public class PacketFly extends BlackOutModule {
                 yOffset = y;
             }
 
-            offset = offset.add(strictVertical.get() && yOffset != 0 ? 0 : x, yOffset, strictVertical.get() && yOffset != 0 ? 0 : z);
+            offset = offset.add(strictVertical.get() && yOffset != 0 ? 0 : x, yOffset,
+                    strictVertical.get() && yOffset != 0 ? 0 : z);
 
             send(offset.add(mc.player.getPos()), getBounds(), getOnGround());
 
@@ -271,7 +254,7 @@ public class PacketFly extends BlackOutModule {
             }
         }
 
-        ((IVec3d) e.movement).set(offset.x, offset.y, offset.z);
+        ((IVec3d) e.movement).meteor$set(offset.x, offset.y, offset.z);
 
         packetsToSend = Math.min(packetsToSend, 1);
     }
@@ -293,26 +276,27 @@ public class PacketFly extends BlackOutModule {
     private void onReceive(PacketEvent.Receive e) {
         if (e.packet instanceof PlayerPositionLookS2CPacket packet) {
             if (debugID.get()) {
-                debug("id: " + packet.getTeleportId());
+                debug("id: " + packet.teleportId());
             }
-            Vec3d vec = new Vec3d(packet.getX(), packet.getY(), packet.getZ());
+            Vec3d vec = packet.change().position();
+            int teleportId = packet.teleportId();
 
-            if (validPos.containsKey(packet.getTeleportId()) && validPos.get(packet.getTeleportId()).equals(vec)) {
+            if (validPos.containsKey(teleportId) && validPos.get(teleportId).equals(vec)) {
                 if (debugID.get()) {
                     debug("true");
                 }
                 e.cancel();
                 if (!predictID.get()) {
-                    sendPacket(new TeleportConfirmC2SPacket(packet.getTeleportId()));
+                    sendPacket(new TeleportConfirmC2SPacket(teleportId));
                 }
-                validPos.remove(packet.getTeleportId());
+                validPos.remove(teleportId);
                 return;
             }
             if (debugID.get()) {
                 debug("false");
             }
 
-            id = packet.getTeleportId();
+            id = teleportId;
         }
     }
 
@@ -322,7 +306,8 @@ public class PacketFly extends BlackOutModule {
     }
 
     private boolean onGround() {
-        return mc.player.isOnGround() || (mc.player.getBlockY() - mc.player.getY() == 0 && OLEPOSSUtils.collidable(mc.player.getBlockPos().down()));
+        return mc.player.isOnGround() || (mc.player.getBlockY() - mc.player.getY() == 0
+                && OLEPOSSUtils.collidable(mc.player.getBlockPos().down()));
     }
 
     private double packets(boolean semiPhasing) {
@@ -331,7 +316,8 @@ public class PacketFly extends BlackOutModule {
 
     private Vec3d getBounds() {
         int yaw = random.nextInt(0, 360);
-        return new Vec3d(Math.cos(Math.toRadians(yaw)) * xzBound.get(), yBound.get(), Math.sin(Math.toRadians(yaw)) * xzBound.get());
+        return new Vec3d(Math.cos(Math.toRadians(yaw)) * xzBound.get(), yBound.get(),
+                Math.sin(Math.toRadians(yaw)) * xzBound.get());
     }
 
     private boolean getOnGround() {
@@ -355,8 +341,10 @@ public class PacketFly extends BlackOutModule {
     }
 
     private void send(Vec3d pos, Vec3d bounds, boolean onGround) {
-        PlayerMoveC2SPacket.PositionAndOnGround normal = new PlayerMoveC2SPacket.PositionAndOnGround(pos.x, pos.y, pos.z, onGround);
-        PlayerMoveC2SPacket.PositionAndOnGround bound = new PlayerMoveC2SPacket.PositionAndOnGround(pos.x + bounds.x, pos.y + bounds.y, pos.z + bounds.z, onGround);
+        PlayerMoveC2SPacket.PositionAndOnGround normal = new PlayerMoveC2SPacket.PositionAndOnGround(pos.x, pos.y,
+                pos.z, onGround, mc.player.horizontalCollision);
+        PlayerMoveC2SPacket.PositionAndOnGround bound = new PlayerMoveC2SPacket.PositionAndOnGround(pos.x + bounds.x,
+                pos.y + bounds.y, pos.z + bounds.z, onGround, mc.player.horizontalCollision);
 
         validPackets.add(normal);
         sendPacket(normal);

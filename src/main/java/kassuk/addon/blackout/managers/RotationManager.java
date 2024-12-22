@@ -76,7 +76,8 @@ public class RotationManager {
                 updateNextRotation();
 
                 if (rotated) {
-                    mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(next[0], next[1], Managers.ON_GROUND.isOnGround()));
+                    mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(next[0], next[1],
+                            Managers.ON_GROUND.isOnGround(), mc.player.horizontalCollision));
                 }
             }
         }
@@ -84,14 +85,16 @@ public class RotationManager {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onRender(Render3DEvent event) {
-        if (mc.player == null) return;
-        if (settings == null) settings = Modules.get().get(RotationSettings.class);
+        if (mc.player == null)
+            return;
+        if (settings == null)
+            settings = Modules.get().get(RotationSettings.class);
 
         timer -= event.frameTime;
         if (timer > 0 && target != null && lastDir != null) {
             if (SettingUtils.shouldVanillaRotate()) {
-                mc.player.setYaw(MathHelper.lerpAngleDegrees(mc.getTickDelta(), prevDir[0], currentDir[0]));
-                mc.player.setPitch(MathHelper.lerp(mc.getTickDelta(), prevDir[1], currentDir[1]));
+                mc.player.setYaw(MathHelper.lerpAngleDegrees(event.tickDelta, prevDir[0], currentDir[0]));
+                mc.player.setPitch(MathHelper.lerp(event.tickDelta, prevDir[1], currentDir[1]));
             }
         } else if (target != null) {
             target = null;
@@ -112,10 +115,12 @@ public class RotationManager {
         updateNextRotation();
 
         if (rotated) {
-            return new PlayerMoveC2SPacket.Full(packet.getX(0), packet.getY(0), packet.getZ(0), next[0], next[1], packet.isOnGround());
+            return new PlayerMoveC2SPacket.Full(packet.getX(0), packet.getY(0), packet.getZ(0), next[0], next[1],
+                    packet.isOnGround(), packet.horizontalCollision());
         }
 
-        return new PlayerMoveC2SPacket.PositionAndOnGround(packet.getX(0), packet.getY(0), packet.getZ(0), packet.isOnGround());
+        return new PlayerMoveC2SPacket.PositionAndOnGround(packet.getX(0), packet.getY(0), packet.getZ(0),
+                packet.isOnGround(), packet.horizontalCollision());
     }
 
     public PlayerMoveC2SPacket onPositionOnGround(PlayerMoveC2SPacket.PositionAndOnGround packet) {
@@ -129,7 +134,8 @@ public class RotationManager {
         updateNextRotation();
 
         if (rotated) {
-            return new PlayerMoveC2SPacket.Full(packet.getX(0), packet.getY(0), packet.getZ(0), next[0], next[1], packet.isOnGround());
+            return new PlayerMoveC2SPacket.Full(packet.getX(0), packet.getY(0), packet.getZ(0), next[0], next[1],
+                    packet.isOnGround(), packet.horizontalCollision());
         }
 
         return packet;
@@ -146,10 +152,11 @@ public class RotationManager {
         updateNextRotation();
 
         if (rotated) {
-            return new PlayerMoveC2SPacket.LookAndOnGround(next[0], next[1], packet.isOnGround());
+            return new PlayerMoveC2SPacket.LookAndOnGround(next[0], next[1], packet.isOnGround(),
+                    packet.horizontalCollision());
         }
         if (packet.isOnGround() != Managers.ON_GROUND.isOnGround()) {
-            return new PlayerMoveC2SPacket.OnGroundOnly(packet.isOnGround());
+            return new PlayerMoveC2SPacket.OnGroundOnly(packet.isOnGround(), packet.horizontalCollision());
         }
 
         return null;
@@ -166,7 +173,8 @@ public class RotationManager {
         updateNextRotation();
 
         if (rotated) {
-            return new PlayerMoveC2SPacket.LookAndOnGround(next[0], next[1], packet.isOnGround());
+            return new PlayerMoveC2SPacket.LookAndOnGround(next[0], next[1], packet.isOnGround(),
+                    packet.horizontalCollision());
         }
 
         return packet;
@@ -185,9 +193,17 @@ public class RotationManager {
         if (shouldRotate) {
             if (target instanceof BoxTarget) {
                 ((BoxTarget) target).vec = getTargetPos();
-                next = new float[]{RotationUtils.nextYaw(lastDir[0], RotationUtils.getYaw(eyePos, ((BoxTarget) target).vec), settings.yawStep(((BoxTarget) target).type)), RotationUtils.nextPitch(lastDir[1], RotationUtils.getPitch(eyePos, ((BoxTarget) target).vec), settings.pitchStep(((BoxTarget) target).type))};
+                next = new float[] {
+                        RotationUtils.nextYaw(lastDir[0], RotationUtils.getYaw(eyePos, ((BoxTarget) target).vec),
+                                settings.yawStep(((BoxTarget) target).type)),
+                        RotationUtils.nextPitch(lastDir[1], RotationUtils.getPitch(eyePos, ((BoxTarget) target).vec),
+                                settings.pitchStep(((BoxTarget) target).type)) };
             } else {
-                next = new float[]{RotationUtils.nextYaw(lastDir[0], ((AngleTarget) target).yaw, settings.yawStep(((AngleTarget) target).type)), RotationUtils.nextPitch(lastDir[1], ((AngleTarget) target).pitch, settings.pitchStep(((AngleTarget) target).type))};
+                next = new float[] {
+                        RotationUtils.nextYaw(lastDir[0], ((AngleTarget) target).yaw,
+                                settings.yawStep(((AngleTarget) target).type)),
+                        RotationUtils.nextPitch(lastDir[1], ((AngleTarget) target).pitch,
+                                settings.pitchStep(((AngleTarget) target).type)) };
             }
 
             rotated = Math.abs(RotationUtils.yawAngle(next[0], lastDir[0])) > 0 || Math.abs(next[1] - lastDir[1]) > 0;
@@ -204,7 +220,8 @@ public class RotationManager {
     }
 
     public void end(long k) {
-        if (k == key) priority = 1000;
+        if (k == key)
+            priority = 1000;
     }
 
     public void endYaw(double yaw, boolean reset) {
@@ -264,13 +281,15 @@ public class RotationManager {
 
         boolean alreadyRotated = SettingUtils.rotationCheck(box, type);
 
-        if (p < priority || key == this.key || (p == priority && (!(target instanceof BoxTarget) || SettingUtils.rotationCheck(((BoxTarget) target).box, type)))) {
+        if (p < priority || key == this.key || (p == priority
+                && (!(target instanceof BoxTarget) || SettingUtils.rotationCheck(((BoxTarget) target).box, type)))) {
             if (!alreadyRotated) {
                 priority = p;
             }
 
             this.key = key;
-            target = pos != null ? new BoxTarget(pos, vec != null ? vec : OLEPOSSUtils.getMiddle(box), p, type) : new BoxTarget(box, vec != null ? vec : OLEPOSSUtils.getMiddle(box), p, type);
+            target = pos != null ? new BoxTarget(pos, vec != null ? vec : OLEPOSSUtils.getMiddle(box), p, type)
+                    : new BoxTarget(box, vec != null ? vec : OLEPOSSUtils.getMiddle(box), p, type);
             timer = settings.time(type);
         }
 
@@ -290,7 +309,8 @@ public class RotationManager {
     }
 
     public boolean start(BlockPos pos, Vec3d vec, double p, RotationType type, long key) {
-        return start(pos, new Box(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1), vec, p, type, key);
+        return start(pos, new Box(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1),
+                vec, p, type, key);
     }
 
     private void setEyePos(Vec3d vec3d) {
@@ -301,18 +321,22 @@ public class RotationManager {
         history.add(0, new Rotation(yaw, pitch, mc.player.getEyePos()));
 
         for (int i = history.size(); i > 20; i--) {
-            if (history.size() > i) history.remove(i);
+            if (history.size() > i)
+                history.remove(i);
         }
     }
 
-    public record Rotation(double yaw, double pitch, Vec3d vec) {}
+    public record Rotation(double yaw, double pitch, Vec3d vec) {
+    }
 
     public Vec3d getTargetPos() {
         BoxTarget t = (BoxTarget) target;
 
         if (settings.mode(t.type) != RotationSettings.RotationCheckMode.StrictRaytrace ||
-            NCPRaytracer.raytrace(mc.player.getEyePos(), t.targetVec, t.box)) {
-            return new Vec3d(MathHelper.clamp(t.targetVec.x + (Math.random() - 0.5) * 0.05, t.box.minX, t.box.maxX), MathHelper.clamp(t.targetVec.y + (Math.random() - 0.5) * 0.05, t.box.minY, t.box.maxY), MathHelper.clamp(t.targetVec.z + (Math.random() - 0.5) * 0.05, t.box.minZ, t.box.maxZ));
+                NCPRaytracer.raytrace(mc.player.getEyePos(), t.targetVec, t.box)) {
+            return new Vec3d(MathHelper.clamp(t.targetVec.x + (Math.random() - 0.5) * 0.05, t.box.minX, t.box.maxX),
+                    MathHelper.clamp(t.targetVec.y + (Math.random() - 0.5) * 0.05, t.box.minY, t.box.maxY),
+                    MathHelper.clamp(t.targetVec.z + (Math.random() - 0.5) * 0.05, t.box.minZ, t.box.maxZ));
         }
 
         Vec3d eye = mc.player.getEyePos();
@@ -322,12 +346,15 @@ public class RotationManager {
         for (double x = 0; x <= 1; x += 0.1) {
             for (double y = 0; y <= 1; y += 0.1) {
                 for (double z = 0; z <= 1; z += 0.1) {
-                    Vec3d vec = new Vec3d(lerp(t.box.minX, t.box.maxX, x), lerp(t.box.minY, t.box.maxY, y), lerp(t.box.minZ, t.box.maxZ, z));
+                    Vec3d vec = new Vec3d(lerp(t.box.minX, t.box.maxX, x), lerp(t.box.minY, t.box.maxY, y),
+                            lerp(t.box.minZ, t.box.maxZ, z));
 
                     double d = t.targetVec.distanceTo(vec);
-                    if (d > cd) continue;
+                    if (d > cd)
+                        continue;
 
-                    if (!NCPRaytracer.raytrace(eye, vec, ((BoxTarget) target).box)) continue;
+                    if (!NCPRaytracer.raytrace(eye, vec, ((BoxTarget) target).box))
+                        continue;
 
                     cd = d;
                     closest = vec;
@@ -343,25 +370,34 @@ public class RotationManager {
     }
 
     public void setHeadYaw(Args args) {
-        if (!shouldRotate) {return;}
+        if (!shouldRotate) {
+            return;
+        }
 
         args.set(1, prevDir[0]);
         args.set(2, currentDir[0]);
     }
+
     public void setBodyYaw(Args args) {
-        if (!shouldRotate) {return;}
+        if (!shouldRotate) {
+            return;
+        }
 
         args.set(1, prevDir[0]);
         args.set(2, currentDir[0]);
     }
+
     public void setPitch(Args args) {
-        if (!shouldRotate) {return;}
+        if (!shouldRotate) {
+            return;
+        }
 
         args.set(1, prevDir[1]);
         args.set(2, currentDir[1]);
     }
 
-    private static class Target {}
+    private static class Target {
+    }
 
     private static class BoxTarget extends Target {
         public final BlockPos pos;
